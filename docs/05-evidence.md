@@ -59,6 +59,30 @@ paired samples produces p ≤ 0.05 (normal approximation).
 
 ---
 
+### E-003  —  Component test suite passes (conformance, failure-mode, property)
+
+**Claim.** The `werpipe` package has 22 tests covering conformance (WER, normalization,
+aggregation), failure modes (small N non-significance, NaN handling, single-pair edge case),
+and properties (WER bounded below, normalization idempotence, bootstrap CI monotonicity).
+All pass with `go test ./src/werpipe/ -v`.
+
+**Environment:** Go 1.22, Linux/amd64.
+
+```bash
+go test ./src/werpipe/ -v
+```
+
+**Result:** 22/22 tests pass. Key checks: WER = 0 for identical strings, WER = 2.0 for
+completely disjoint strings, normalize is idempotent and letter-case invariant, Wilcoxon
+p = 1.0 for identical data, p < 0.05 for systematic 0.05 shift on n=40, bootstrap 95% CI
+contains the expected range.
+
+**Status:** reproducing
+**Supports:** S-003 (modifiability — touching ≤3 files to add a quantization level)
+**Recorded:** 2026-08-11
+
+---
+
 <!-- Template for further entries:
 
 ### E-002 — title

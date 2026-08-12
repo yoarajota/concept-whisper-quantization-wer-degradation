@@ -51,7 +51,7 @@ iso5055:
   last_run:
     date: "2026-08-11"
     exit_code: -1
-    commit: ec257154657f40ebcdde1d75be74cfb5a20f4abc
+    commit: 5d819b5d8788e705f53d43a23950f36fcb7802c4
   thresholds:
     cyclomatic_complexity_max: 15
     function_length_max: 60
@@ -78,10 +78,10 @@ iso5055:
   #   expires: "2026-12-31"
 
 # Rule R5: every structural complexity traced to the scenario that requires it.
-complexity_ledger: []
-  # - item: "background compaction worker"
-  #   justifies: [S-001]
-  #   adr: D-003
+complexity_ledger:
+  - item: "Pipeline struct (exec wrapper for whisper.cpp)"
+    justifies: [S-001]
+    adr: D-001
 
 # Completed at P6. `suitable_for` is derived from the mapping table, never chosen.
 # diffusion:
