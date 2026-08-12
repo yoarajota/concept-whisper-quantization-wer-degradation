@@ -15,7 +15,7 @@
     "created": "2026-08-11",
     "updated": "2026-08-11",
     "generated_at": "2026-08-12",
-    "input_digest": "1ee39058ca0f2ab0"
+    "input_digest": "160df2925d8a7b01"
   },
   "pitch": {
     "one_line_answer": "INT8 is near-lossless on clean speech (Q8_0 WER 4.73% vs F16 4.94%, p=0.38, 47% smaller) — but so is INT4: Q4_0 WER 5.15% vs 4.94% (+4.2%, p=0.57, not significant) and 71% smaller. The predicted degradation cliff does not exist on LibriSpeech test-clean.",
