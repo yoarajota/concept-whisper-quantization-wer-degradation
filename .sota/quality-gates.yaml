@@ -51,7 +51,7 @@ iso5055:
   last_run:
     date: "2026-08-11"
     exit_code: -1
-    commit: 4876876f55ac7af44411035c9b4b04d1455c3c41
+    commit: 76c99cdff863d768b95e9024b397012c29c7632e
   thresholds:
     cyclomatic_complexity_max: 15
     function_length_max: 60
