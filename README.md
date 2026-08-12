@@ -86,6 +86,27 @@ cmp := werpipe.Compare(baseline, results)
 fmt.Printf("Q8_0 WER: %.4f (p=%.4f, sig=%v)\n", agg.MeanWER, cmp.PValue, cmp.Significant)
 ```
 
+### Chunked runs (low-priority, resumable)
+
+The full 2620-sample dataset needs hours of CPU. Run it in resumable chunks at
+low CPU priority so it does not disturb other work:
+
+```bash
+# 200-sample chunks, capped at 2 CPUs; safe to Ctrl-C and re-run — finished
+# chunks are skipped, and `werpipe merge` recombines everything at the end.
+MODELS_DIR=/path/to/models LIBRISPEECH=/path/to/flat OUT_DIR=./out \
+  make bench-chunk CHUNK_SIZE=200 CPUS=2
+
+# After all chunks: merge reports (already done by bench-chunk, or manually)
+werpipe merge out/chunk-*.json > out/final.json
+
+# Quick probe: f16 vs q4_0 on 100 samples (~70 min at 2 CPUs)
+MODELS_DIR=/path/to/models LIBRISPEECH=/path/to/flat make bench-probe
+```
+
+`-offset` / `-limit` slice the dataset deterministically (sorted sample IDs), so a
+chunk is reproducible regardless of filesystem ordering.
+
 ## How it works
 
 The `werpipe` package [E-003] wraps whisper.cpp via `os/exec`, normalises output,
