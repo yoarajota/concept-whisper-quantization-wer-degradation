@@ -44,17 +44,17 @@ func main() {
 	pipeline := werpipe.NewPipeline(*whisperCLI, *modelDir, *threads)
 
 	type levelReport struct {
-		Level     string              `json:"level"`
-		Model     string              `json:"model"`
-		NumSamples int                `json:"num_samples"`
-		NumErrors int                `json:"num_errors"`
-		Results   werpipe.LevelResults `json:"results"`
+		Level      string              `json:"level"`
+		Model      string              `json:"model"`
+		NumSamples int                 `json:"num_samples"`
+		NumErrors  int                 `json:"num_errors"`
+		Results    werpipe.LevelResults `json:"results"`
 		Comparison *werpipe.Comparison  `json:"comparison,omitempty"`
 	}
 	var reports []levelReport
 	var baselineResults []werpipe.SampleResult
 
-	for i, lvl := range levels {
+	for li, lvl := range levels {
 		model, ok := modelMap[lvl]
 		if !ok {
 			model = lvl
@@ -65,6 +65,18 @@ func main() {
 			continue
 		}
 
+		fmt.Fprintf(os.Stderr, "[%d/%d] %-6s starting (model: %s)\n", li+1, len(levels), lvl, model)
+		levelName := lvl
+		pipeline.OnProgress = func(done, total int, sampleID string, wer float64, err error) {
+			if done%20 == 0 || done == total {
+				status := "."
+				if err != nil {
+					status = "E"
+				}
+				fmt.Fprintf(os.Stderr, "  [%d/%d] %-6s %d/%d %s\n", li+1, len(levels), levelName, done, total, status)
+			}
+		}
+
 		results, err := pipeline.Run(werpipe.QuantLevel(lvl), model, samples)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s: run error: %v\n", lvl, err)
@@ -72,8 +84,9 @@ func main() {
 		}
 
 		agg := werpipe.Aggregate(results)
-		fmt.Fprintf(os.Stderr, "%s: WER=%.4f (median=%.4f, std=%.4f, %d ok/%d errors)\n",
-			lvl, agg.MeanWER, agg.MedianWER, agg.StdDev, agg.NumSuccess, agg.NumError)
+		fmt.Fprintf(os.Stderr, "  [%d/%d] %-6s %d/%d DONE WER=%.4f med=%.4f %dok/%derr\n",
+			li+1, len(levels), levelName, len(samples), len(samples),
+			agg.MeanWER, agg.MedianWER, agg.NumSuccess, agg.NumError)
 
 		r := levelReport{
 			Level:      lvl,
@@ -83,7 +96,7 @@ func main() {
 			Results:    agg,
 		}
 
-		if i == 0 {
+		if li == 0 {
 			baselineResults = results
 		} else if baselineResults != nil {
 			cmp := werpipe.Compare(baselineResults, results)

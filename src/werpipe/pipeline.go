@@ -8,10 +8,13 @@ import (
 	"strings"
 )
 
+type ProgressFn func(done, total int, sampleID string, wer float64, err error)
+
 type Pipeline struct {
 	WhisperCLI string
 	ModelDir   string
 	Threads    int
+	OnProgress ProgressFn
 }
 
 func NewPipeline(whisperCLI, modelDir string, threads int) *Pipeline {
@@ -41,12 +44,15 @@ func (p *Pipeline) Run(level QuantLevel, modelName string, samples []Sample) ([]
 		}
 		if err != nil {
 			results[i].Error = err
-			continue
+		} else {
+			hyp := Normalize(out)
+			results[i].Hypothesis = hyp
+			results[i].WER = ComputeWER(s.Reference, hyp)
+			results[i].Error = nil
 		}
-		hyp := Normalize(out)
-		results[i].Hypothesis = hyp
-		results[i].WER = ComputeWER(s.Reference, hyp)
-		results[i].Error = nil
+		if p.OnProgress != nil {
+			p.OnProgress(i+1, len(samples), s.ID, results[i].WER, results[i].Error)
+		}
 	}
 	return results, nil
 }
