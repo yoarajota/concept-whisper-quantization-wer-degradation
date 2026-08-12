@@ -1,0 +1,94 @@
+# ISO/IEC 25010 utility tree + ISO/IEC 5055 gates + diffusion assessment.
+# Rubrics: framework/instruments/{iso25010,iso5055,diffusion}.md
+
+# At most 3. A concept that drives all nine drives none.
+driving_characteristics:
+  - performance-efficiency
+  - reliability
+
+utility_tree:
+  - id: S-001
+    characteristic: performance-efficiency
+    sub_attribute: time-behaviour
+    scenario: >
+      When a WER measurement is requested for a specific quantization level on LibriSpeech
+      test-clean, the pipeline returns a WER score with 95% confidence interval within
+      30 minutes on a consumer GPU, measured as wall-clock time per quantization level.
+    priority: high
+    difficulty: high
+    verification: bench/wer_bench_test.go
+    status: unverified
+    evidence_refs: []
+
+  - id: S-002
+    characteristic: reliability
+    sub_attribute: fault-tolerance
+    scenario: >
+      When whisper.cpp returns a non-zero exit code or the audio file is missing,
+      the pipeline skips the sample, logs the error, and continues with remaining
+      samples, measured as the ratio of successfully processed samples to total.
+    priority: high
+    difficulty: medium
+    verification: internal/wer_test.go
+    status: unverified
+    evidence_refs: []
+
+  - id: S-003
+    characteristic: maintainability
+    sub_attribute: modifiability
+    scenario: >
+      When a new quantization level (e.g. INT6) must be added, a competent engineer applies
+      it by touching at most 3 files, measured as files changed in the reference patch.
+    priority: medium
+    difficulty: medium
+    verification: docs/04-tradeoffs.md
+    status: unverified
+    evidence_refs: []
+
+iso5055:
+  # One command that runs every check below and exits non-zero on violation.
+  runner: "make quality"
+  last_run:
+    date: "2026-08-11"
+    exit_code: -1
+    commit: HEAD
+  thresholds:
+    cyclomatic_complexity_max: 15
+    function_length_max: 60
+    file_length_max: 500
+    duplicated_lines_pct_max: 3
+    max_call_depth: 8
+  # Replace `tool` with the real check for this stack. Rows may not be dropped.
+  weaknesses:
+    - {cwe: 798,  name: "Hard-coded credentials",              tool: "gitleaks"}
+    - {cwe: 20,   name: "Improper input validation",           tool: "golangci-lint (govet)"}
+    - {cwe: 476,  name: "Null pointer dereference",            tool: "golangci-lint (nilness)"}
+    - {cwe: 772,  name: "Missing release of resource",         tool: "golangci-lint (bodyclose)"}
+    - {cwe: 391,  name: "Unchecked error condition",           tool: "errcheck"}
+    - {cwe: 400,  name: "Uncontrolled resource consumption",   tool: "golangci-lint (contextcheck)"}
+    - {cwe: 1121, name: "Excessive cyclomatic complexity",     tool: "gocyclo"}
+    - {cwe: 1041, name: "Unstructured duplicated code",        tool: "golangci-lint (dupl)"}
+    - {cwe: 561,  name: "Dead code",                           tool: "staticcheck"}
+    - {cwe: 1047, name: "Circular dependencies",               tool: "golangci-lint (depguard)"}
+  exemptions: []
+  # - id: X-001
+  #   rule: cyclomatic_complexity_max
+  #   scope: internal/pkg/file.go:Function
+  #   reason: "At least 30 characters explaining why decomposition would make this worse."
+  #   expires: "2026-12-31"
+
+# Rule R5: every structural complexity traced to the scenario that requires it.
+complexity_ledger: []
+  # - item: "background compaction worker"
+  #   justifies: [S-001]
+  #   adr: D-003
+
+# Completed at P6. `suitable_for` is derived from the mapping table, never chosen.
+# diffusion:
+#   relative_advantage: {score: partial, justification: "..."}
+#   compatibility:      {score: strong,  justification: "..."}
+#   simplicity:         {score: weak,    justification: "..."}
+#   trialability:       {score: strong,  justification: "..."}
+#   observability:      {score: partial, justification: "..."}
+#   suitable_for: early-adopters
+#   chasm_blockers: [simplicity]
