@@ -1,0 +1,17 @@
+services:
+  whisper:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: concept-whisper-wer:latest
+    volumes:
+      - whisper_models:/models
+      - ${LIBRISPEECH_PATH:-./data/librispeech}:/data:ro
+    command: >
+      -audio /data/test-clean
+      -transcripts /data/test-clean
+      -levels "f16,q8_0,q5_0,q4_0"
+      -v
+
+volumes:
+  whisper_models:

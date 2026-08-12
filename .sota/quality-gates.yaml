@@ -11,9 +11,9 @@ utility_tree:
     characteristic: performance-efficiency
     sub_attribute: time-behaviour
     scenario: >
-      When a WER measurement is requested for a specific quantization level on LibriSpeech
-      test-clean, the pipeline returns a WER score with 95% confidence interval within
-      30 minutes on a consumer GPU, measured as wall-clock time per quantization level.
+      When the pipeline measures WER for 4 quantization levels on all 2620 LibriSpeech
+      test-clean utterances, it completes end-to-end within 4 hours on a 4-core CPU,
+      measured as wall-clock time reported by the CLI.
     priority: high
     difficulty: high
     verification: bench/wer_bench_test.go
@@ -24,12 +24,12 @@ utility_tree:
     characteristic: reliability
     sub_attribute: fault-tolerance
     scenario: >
-      When whisper.cpp returns a non-zero exit code or the audio file is missing,
-      the pipeline skips the sample, logs the error, and continues with remaining
-      samples, measured as the ratio of successfully processed samples to total.
+      When whisper-cli returns a non-zero exit code on 5% of samples, the pipeline
+      skips those samples, logs each error, and reports at least 95% of samples
+      successfully transcribed, measured as NumSuccess / total samples.
     priority: high
     difficulty: medium
-    verification: internal/wer_test.go
+    verification: internal/fault_test.go
     status: unverified
     evidence_refs: []
 
@@ -37,8 +37,9 @@ utility_tree:
     characteristic: maintainability
     sub_attribute: modifiability
     scenario: >
-      When a new quantization level (e.g. INT6) must be added, a competent engineer applies
-      it by touching at most 3 files, measured as files changed in the reference patch.
+      When a new quantization level must be added, a developer touches at most
+      2 files (cmd/werpipe/main.go for the level map, and the model download
+      script), measured as files changed in the reference patch.
     priority: medium
     difficulty: medium
     verification: docs/04-tradeoffs.md
@@ -51,7 +52,7 @@ iso5055:
   last_run:
     date: "2026-08-11"
     exit_code: 0
-    commit: d885b19bded787bd48fe4438670b7b3cbf4f6dc9
+    commit: b7e15d5439d3a7cdbfd06666902e55426caa74a1
   thresholds:
     cyclomatic_complexity_max: 15
     function_length_max: 60
@@ -85,6 +86,9 @@ iso5055:
 # Rule R5: every structural complexity traced to the scenario that requires it.
 complexity_ledger:
   - item: "Pipeline struct (exec wrapper for whisper.cpp)"
+    justifies: [S-001]
+    adr: D-001
+  - item: "Docker container for whisper.cpp"
     justifies: [S-001]
     adr: D-001
 
