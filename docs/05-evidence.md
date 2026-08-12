@@ -37,6 +37,28 @@ bootstrap CIs and paired statistical tests.
 
 ---
 
+### E-002  —  PoC: WER computation and Wilcoxon test validate statistically
+
+**Claim.** The PoC pipeline correctly computes WER (Levenshtein distance at word level) and
+produces a valid Wilcoxon signed-rank p-value for paired per-sample WER comparisons.
+Tests in `poc/main_test.go` verify edge cases (perfect match, all wrong, empty inputs,
+systematic shift). Appears in `poc/`.
+
+**Environment:** Go 1.x, Linux/amd64.
+
+```bash
+go test ./poc/ -v
+```
+
+**Result:** 7/7 tests pass. `TestWilcoxonShift` confirms a systematic 0.01 shift on 60
+paired samples produces p ≤ 0.05 (normal approximation).
+
+**Status:** reproducing
+**Supports:** H-001, H-002, TRL 3 for `core`
+**Recorded:** 2026-08-11
+
+---
+
 <!-- Template for further entries:
 
 ### E-002 — title

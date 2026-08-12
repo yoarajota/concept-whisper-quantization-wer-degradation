@@ -1,10 +1,12 @@
 components:
 - id: core
   role: concept
-  trl: 1
+  trl: 3
   evidence_refs:
   - E-001
-  notes: 'The WER measurement pipeline — concept at TRL 1 (basic principles observed).
+  - E-002
+  notes: 'WER computation and Wilcoxon signed-rank test validated against known cases.
+    PoC in poc/ demonstrates the critical function end-to-end.
 
     '
 integrations: []
