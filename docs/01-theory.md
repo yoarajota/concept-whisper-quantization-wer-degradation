@@ -50,14 +50,14 @@ The results are valid under the following conditions, all drawn from the source 
 - **Quantization method**: whisper.cpp's ggml quantization (uniform, symmetric, per-block,
   PTQ with no calibration). Results do not generalise to PyTorch dynamic quantization, HQQ,
   bitsandbytes, or other PTQ schemes. Static quantization on Transformer ASR models performs
-  substantially worse (+2.5 absolute WER on clean speech, +4.0 on other) [SRC-004].
+  substantially worse (+2.5 absolute WER on clean speech, +4.0 on other) [SRC-004] [E-001].
 - **Hardware**: whisper.cpp runs on CPU (ARM NEON, AVX2) or GPU (Metal, CUDA, Vulkan).
   Quantization primarily affects memory footprint, not arithmetic precision at runtime, since
   weights are dequantised to FP32 during computation [SRC-002].
 - **Language**: English only; the concept uses the `.en` fine-tuned variant or the multilingual
   model with English task.
 
-## 3. Known failure modes
+## Known failure modes
 
 Required by gate G1. Each row maps to a property or edge test at P3.
 
@@ -98,24 +98,24 @@ only variable is the model file's quantization.
 
 ## 5. Hypothesis
 
-**H-001** — Under LibriSpeech test-clean conditions, INT4-quantized (Q4_0) Whisper large-v3 shows
+**H-001** [E-001] — Under LibriSpeech test-clean conditions, INT4-quantized (Q4_0) Whisper large-v3 shows
 statistically significant WER degradation (p ≤ 0.05, Wilcoxon signed-rank on paired per-sample
 WER) and >10% relative WER increase vs the FP16 baseline, at the cost of 67% model size reduction
 (~900 MB vs ~2.9 GB).
 
 *Falsified if:* Q4_0 WER is not significantly different from FP16 WER (Wilcoxon p > 0.05), or
-the relative WER increase is ≤ 10%.
+the relative WER increase is ≤ 10%. [E-001]
 
 *Measured by:* `internal/wer` pipeline transcribing all 2620 LibriSpeech test-clean utterances
 with whisper.cpp FP16, Q8_0, Q5_0, Q4_0; computing per-sample WER via Levenshtein alignment;
 deriving 95% bootstrap CIs and Wilcoxon signed-rank p-values.
 
-**H-002** — Under LibriSpeech test-clean conditions, INT8-quantized (Q8_0) Whisper large-v3 shows
+**H-002** [E-001] — Under LibriSpeech test-clean conditions, INT8-quantized (Q8_0) Whisper large-v3 shows
 no statistically significant WER degradation vs FP16 (p > 0.05, Wilcoxon signed-rank), with
 relative WER increase < 5%, at the cost of 57% model size reduction (~1.2 GB vs ~2.9 GB).
 
 *Falsified if:* Q8_0 WER is significantly worse than FP16 (Wilcoxon p ≤ 0.05), or relative WER
-increase exceeds 5%.
+increase exceeds 5%. [E-001]
 
 *Measured by:* Same pipeline as H-001.
 
