@@ -1,6 +1,6 @@
 # Tradeoff analysis — Whisper quantization WER degradation curve
 
-ATAM-lite, produced at P4. Method: `framework/instruments/atam-lite.md`.
+ATAM-lite, produced at P4.
 
 ## 1. Drivers
 

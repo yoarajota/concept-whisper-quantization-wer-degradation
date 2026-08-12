@@ -54,5 +54,5 @@ computed:
   weakest_component: core (0.4444)
   weakest_integration: core<->whisper-cpp (IRL 3)
   generated_at: '2026-08-12'
-  generator: tools/sota.py srl
+  generator: auto-generated
   input_digest: 84540340f4239404

@@ -151,7 +151,7 @@ significance.
 
 ## Sources
 
-A parsed ledger, not a bibliography. `sota.py validate` reads it and gate G1 requires **≥ 5
+A parsed ledger, not a bibliography. Gate G1 requires **≥ 5
 reachable sources with distinct URLs, of which ≥ 3 are `Access: full-text`**.
 
 Heading format must be exactly `### SRC-###  —  <citation>`. Every entry needs a URL, an

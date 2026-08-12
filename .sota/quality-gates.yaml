@@ -1,5 +1,4 @@
 # ISO/IEC 25010 utility tree + ISO/IEC 5055 gates + diffusion assessment.
-# Rubrics: framework/instruments/{iso25010,iso5055,diffusion}.md
 
 # At most 3. A concept that drives all nine drives none.
 driving_characteristics:
@@ -50,9 +49,9 @@ iso5055:
   # One command that runs every check below and exits non-zero on violation.
   runner: "make quality"
   last_run:
-    date: "2026-08-11"
+    date: "2026-08-12"
     exit_code: 0
-    commit: 64bb7c242f88d3671d7fb0a29f97fa9d20d92ab6
+    commit: e33c34153469f643dd6932d134c268d4f9e7337a
   thresholds:
     cyclomatic_complexity_max: 15
     function_length_max: 60

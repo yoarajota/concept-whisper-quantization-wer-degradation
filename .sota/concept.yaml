@@ -5,8 +5,8 @@ archetype: implementation
 phase: P6
 status: partially-supported
 
-# The framework is stack-agnostic — it only requires that the stack be declared, so gate
-# commands and verification paths are concrete rather than assumed. Any language is valid.
+# The stack is declared explicitly so gate commands and verification paths are concrete
+# rather than assumed. Any language is valid.
 stack:
   language: Go
   build_tool: make
