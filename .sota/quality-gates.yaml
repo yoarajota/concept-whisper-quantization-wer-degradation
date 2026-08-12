@@ -52,7 +52,7 @@ iso5055:
   last_run:
     date: "2026-08-11"
     exit_code: 0
-    commit: 2fdf7acca7ef226bfd4c6ef7e8119b8ce7baff0a
+    commit: a80992fc6f3658a384c4a5cf24f6a79f4a9efdbd
   thresholds:
     cyclomatic_complexity_max: 15
     function_length_max: 60
@@ -92,12 +92,21 @@ complexity_ledger:
     justifies: [S-001]
     adr: D-001
 
-# Completed at P6. `suitable_for` is derived from the mapping table, never chosen.
-# diffusion:
-#   relative_advantage: {score: partial, justification: "..."}
-#   compatibility:      {score: strong,  justification: "..."}
-#   simplicity:         {score: weak,    justification: "..."}
-#   trialability:       {score: strong,  justification: "..."}
-#   observability:      {score: partial, justification: "..."}
-#   suitable_for: early-adopters
-#   chasm_blockers: [simplicity]
+diffusion:
+  relative_advantage:
+    score: partial
+    justification: "67% model size reduction on tiny.en (75MB -> 25MB, E-004). WER degradation curve for large-v3 not yet measured; the concept's question is exactly quantifying the accuracy-cost of this compression. Literature [SRC-004] suggests 70% compression is achievable with <2% WER penalty on larger models."
+  compatibility:
+    score: partial
+    justification: "Drop-in for any whisper.cpp deployment; uses standard ggml quantization formats. IRL 3 seam (core<->whisper-cpp) limits confidence until integration testing with fault injection exists (R-002)."
+  simplicity:
+    score: strong
+    justification: "Single Docker image contains whisper.cpp + werpipe CLI. No host installs required — 'make docker-build && docker run ...' (R10 compliant)."
+  trialability:
+    score: strong
+    justification: "Docker compose reproduces the pipeline in < 2 minutes with tiny.en model and sample audio. Full benchmark requires downloading large-v3 (~2.9GB) and LibriSpeech test-clean (~346MB)."
+  observability:
+    score: partial
+    justification: "JSON output with per-sample WER, aggregate stats, p-values, and bootstrap 95% CI. Headline result (large-v3 degradation curve) requires the full dataset run; intermediate results visible as they complete."
+  suitable_for: early-adopters
+  chasm_blockers: [relative_advantage]
