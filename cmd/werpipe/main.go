@@ -6,18 +6,26 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/yoarajota/concept-whisper-quantization-wer-degradation/src/werpipe"
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "merge" {
+		runMerge(os.Args[2:])
+		return
+	}
+
 	audioDir := flag.String("audio", "", "path to LibriSpeech test-clean audio directory")
 	transDir := flag.String("transcripts", "", "path to LibriSpeech test-clean transcripts")
 	whisperCLI := flag.String("whisper-cli", "/usr/local/bin/whisper-cli", "path to whisper-cli binary")
 	modelDir := flag.String("model-dir", "/models", "directory containing quantized ggml model files")
 	threads := flag.Int("threads", 4, "number of CPU threads")
 	levelsFlag := flag.String("levels", "f16,q8_0,q5_0,q4_0", "comma-separated quantization levels")
+	offset := flag.Int("offset", 0, "skip first N samples (for chunked runs)")
+	limit := flag.Int("limit", 0, "process at most N samples after offset (0 = all)")
 	verbose := flag.Bool("v", false, "verbose: print per-sample WER")
 	flag.Parse()
 
@@ -35,6 +43,20 @@ func main() {
 
 	levels := strings.Split(*levelsFlag, ",")
 	samples := loadSamples(*audioDir, *transDir)
+	totalSamples := len(samples)
+	if *offset > 0 || *limit > 0 {
+		start := *offset
+		end := len(samples)
+		if *limit > 0 && start+*limit < end {
+			end = start + *limit
+		}
+		if start > len(samples) {
+			start = len(samples)
+		}
+		samples = samples[start:end]
+		fmt.Fprintf(os.Stderr, "slice: offset=%d limit=%d -> %d samples (of %d total)\n",
+			*offset, *limit, len(samples), totalSamples)
+	}
 	fmt.Fprintf(os.Stderr, "loaded %d samples\n", len(samples))
 	if len(samples) == 0 {
 		fmt.Fprintln(os.Stderr, "no samples found — check audio/transcript paths")
@@ -43,14 +65,6 @@ func main() {
 
 	pipeline := werpipe.NewPipeline(*whisperCLI, *modelDir, *threads)
 
-	type levelReport struct {
-		Level      string              `json:"level"`
-		Model      string              `json:"model"`
-		NumSamples int                 `json:"num_samples"`
-		NumErrors  int                 `json:"num_errors"`
-		Results    werpipe.LevelResults `json:"results"`
-		Comparison *werpipe.Comparison  `json:"comparison,omitempty"`
-	}
 	var reports []levelReport
 	var baselineResults []werpipe.SampleResult
 
@@ -120,12 +134,15 @@ func main() {
 
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
-	enc.Encode(reports)
+	if err := enc.Encode(reports); err != nil {
+		fmt.Fprintf(os.Stderr, "encode: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func loadSamples(audioDir, transDir string) []werpipe.Sample {
 	var samples []werpipe.Sample
-	filepath.Walk(audioDir, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(audioDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return nil
 		}
@@ -147,5 +164,6 @@ func loadSamples(audioDir, transDir string) []werpipe.Sample {
 		})
 		return nil
 	})
+	sort.Slice(samples, func(i, j int) bool { return samples[i].ID < samples[j].ID })
 	return samples
 }

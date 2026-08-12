@@ -29,4 +29,7 @@ WORKDIR /home/wer
 
 COPY --from=builder /build/werpipe /usr/local/bin/werpipe
 
+COPY bench/ /bench/
+COPY models/download.sh /models/download.sh
+
 ENTRYPOINT ["werpipe"]
