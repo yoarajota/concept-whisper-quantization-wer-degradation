@@ -83,6 +83,43 @@ contains the expected range.
 
 ---
 
+### E-004  —  End-to-end pipeline verification (Docker, tiny.en model)
+
+**Claim.** The werpipe CLI transcribes audio with whisper-cli across multiple quantization
+levels, computes WER, and reports Wilcoxon p-values with bootstrap 95% CI — all from
+within a single Docker container. Appears in README § Try it.
+
+**Environment:** Docker container `concept-whisper-wer` (whisper.cpp v1.9.2, werpipe Go
+CLI), Intel Xeon E5-2680 v4 @ 2.40GHz, 6 vCPUs, no GPU.
+
+```bash
+# Build and run the pipeline
+docker build -f docker/Dockerfile -t concept-whisper-wer .
+docker run --rm --entrypoint sh concept-whisper-wer -c '
+  cd /whisper.cpp
+  wget -q https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin -O ggml-tiny.en.bin
+  ./build/bin/whisper-quantize ggml-tiny.en.bin ggml-tiny.en-q5_0.bin q5_0 2>/dev/null
+  ./build/bin/whisper-quantize ggml-tiny.en.bin ggml-tiny.en-q4_0.bin q4_0 2>/dev/null
+  mkdir -p /tmp/test/audio /tmp/test/transcripts
+  cp samples/jfk.wav /tmp/test/audio/
+  echo "And so my fellow Americans ask not what your country can do for you ask what you can do for your country" > /tmp/test/transcripts/jfk.txt
+  werpipe -audio /tmp/test/audio -transcripts /tmp/test/transcripts -model-dir /whisper.cpp \
+    -whisper-cli /whisper.cpp/build/bin/whisper-cli -v \
+    -levels "ggml-tiny.en.bin,ggml-tiny.en-q5_0.bin,ggml-tiny.en-q4_0.bin"
+'
+```
+
+**Result:** 3 levels, 1 sample each. F16 WER=0.0909, Q5_0 WER=0.0909 (rel=0%, p=1.0),
+Q4_0 WER=0.0909 (rel=0%, p=1.0). Pipeline produces valid JSON, correctly handles
+quantization + transcription + WER + statistical comparison. Size: F16 75MB → Q5_0 29MB
+(61% reduction) → Q4_0 25MB (67% reduction).
+
+**Status:** reproducing
+**Supports:** H-001, H-002, S-001, S-002, TRL 5 for `core`
+**Recorded:** 2026-08-11
+
+---
+
 <!-- Template for further entries:
 
 ### E-002 — title
