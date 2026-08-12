@@ -5,20 +5,20 @@ components:
   evidence_refs:
   - E-001
   - E-002
-  notes: 'WER computation and Wilcoxon signed-rank test validated against known cases.
-    PoC in poc/ demonstrates the critical function end-to-end.
+  notes: 'WER computation and Wilcoxon signed-rank test validated against known cases. PoC in poc/ demonstrates
+    the critical function end-to-end.
 
     '
 integrations: []
 not_applicable: []
 computed:
-  composite_srl: 0.1111
-  translated_srl: 2
+  composite_srl: 0.3333
+  translated_srl: 4
   strict_srl: null
   component_srl:
-    core: 0.1111
-  weakest_component: core (0.1111)
+    core: 0.3333
+  weakest_component: core (0.3333)
   weakest_integration: null
   generated_at: '2026-08-11'
   generator: tools/sota.py srl
-  input_digest: 7161b490dad9b6fe
+  input_digest: f6167cceb21a43b7
