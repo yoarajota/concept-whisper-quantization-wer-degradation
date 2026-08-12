@@ -1,0 +1,259 @@
+{
+  "meta": {
+    "concept_id": "C-003",
+    "slug": "whisper-quantization-wer-degradation",
+    "title": "Whisper quantization WER degradation curve",
+    "question": "What INT quantization level produces the first statistically significant WER degradation in Whisper vs FP16 on clean speech?",
+    "status": "partially-supported",
+    "phase": "P6",
+    "archetype": "implementation",
+    "domain": [
+      "speech-processing",
+      "model-compression"
+    ],
+    "repo_url": "https://github.com/yoarajota/concept-whisper-quantization-wer-degradation",
+    "created": "2026-08-11",
+    "updated": "2026-08-11",
+    "generated_at": "2026-08-12",
+    "input_digest": "1ee39058ca0f2ab0"
+  },
+  "pitch": {
+    "one_line_answer": "INT8 is near-lossless on clean speech (Q8_0 WER 4.73% vs F16 4.94%, p=0.38, 47% smaller) — but so is INT4: Q4_0 WER 5.15% vs 4.94% (+4.2%, p=0.57, not significant) and 71% smaller. The predicted degradation cliff does not exist on LibriSpeech test-clean.",
+    "elevator": "The received wisdom: quantizing Whisper below FP16 hurts transcription accuracy, so pick the highest bit-width you can afford. This project measured the actual degradation curve on LibriSpeech test-clean with a paired Wilcoxon signed-rank test — and found no statistically significant WER penalty even at INT4. large-v3 resists quantization far better than predicted on clean speech; the size savings are real (71% at Q4_0) and the accuracy cost, on this corpus, is not measurable."
+  },
+  "verdict": {
+    "hypotheses": [
+      {
+        "id": "H-001",
+        "statement": "Under LibriSpeech test-clean conditions, INT4-quantized Whisper large-v3 shows statistically significant WER degradation (p <= 0.05, Wilcoxon signed-rank) and >10% relative WER increase vs FP16 baseline.\n",
+        "verdict": "falsified",
+        "evidence_refs": [
+          "E-004",
+          "E-005"
+        ]
+      },
+      {
+        "id": "H-002",
+        "statement": "Under LibriSpeech test-clean conditions, INT8-quantized Whisper large-v3 shows no statistically significant WER degradation vs FP16 (p > 0.05, Wilcoxon signed-rank), with relative WER increase < 5%.\n",
+        "verdict": "supported",
+        "evidence_refs": [
+          "E-004",
+          "E-005"
+        ]
+      }
+    ]
+  },
+  "headline": [
+    {
+      "text": "Q4_0: WER 5.15% vs F16 4.94% (+4.2% relative, p=0.57) — not statistically significant, crossing neither the 10% nor the p<=0.05 falsification thresholds",
+      "evidence": "E-005"
+    },
+    {
+      "text": "Q8_0: WER 4.73% vs F16 4.94% (-4.2% relative, p=0.38) — near-lossless on large-v3 clean speech",
+      "evidence": "E-005"
+    },
+    {
+      "text": "Model size: 2892MB (F16) → 1543MB (Q8_0, -47%) → 830MB (Q4_0, -71%)",
+      "evidence": "E-005"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E-001",
+      "title": "Literature survey",
+      "has_command": true
+    },
+    {
+      "id": "E-002",
+      "title": "PoC: WER computation and Wilcoxon test validate statistically",
+      "has_command": true
+    },
+    {
+      "id": "E-003",
+      "title": "Component test suite passes (conformance, failure-mode, property)",
+      "has_command": true
+    },
+    {
+      "id": "E-004",
+      "title": "End-to-end pipeline verification (Docker, tiny.en model)",
+      "has_command": true
+    },
+    {
+      "id": "E-005",
+      "title": "Large-v3 benchmark on 100 LibriSpeech test-clean samples",
+      "has_command": true
+    }
+  ],
+  "readiness": {
+    "trl": 5,
+    "trl_label": "Component validated in relevant environment",
+    "srl": 4,
+    "srl_label": "Performance specifications and constraints defined and allocated",
+    "composite_srl": 0.679,
+    "components": [
+      {
+        "id": "core",
+        "role": "concept",
+        "trl": 5,
+        "srl": 0.4444
+      },
+      {
+        "id": "whisper-cpp",
+        "role": "tooling",
+        "trl": 9,
+        "srl": 0.5926
+      },
+      {
+        "id": "librispeech",
+        "role": "dataset",
+        "trl": 9,
+        "srl": 1.0
+      }
+    ],
+    "integrations": [
+      {
+        "from": "core",
+        "to": "whisper-cpp",
+        "irl": 3,
+        "note": "Schema defined (CLI flags, stdout capture, error handling on non-zero exit). Happy path works in poc/. No timeouts, retries, or fault injection yet — blocking IRL 4.\n"
+      }
+    ],
+    "weakest": "core<->whisper-cpp (IRL 3)",
+    "scenarios": [
+      {
+        "id": "S-001",
+        "characteristic": "performance-efficiency",
+        "priority": "high",
+        "status": "pass"
+      },
+      {
+        "id": "S-002",
+        "characteristic": "reliability",
+        "priority": "high",
+        "status": "pass"
+      },
+      {
+        "id": "S-003",
+        "characteristic": "maintainability",
+        "priority": "medium",
+        "status": "unverified"
+      }
+    ],
+    "diffusion": {
+      "scores": [
+        {
+          "attribute": "relative_advantage",
+          "score": "partial"
+        },
+        {
+          "attribute": "compatibility",
+          "score": "partial"
+        },
+        {
+          "attribute": "simplicity",
+          "score": "strong"
+        },
+        {
+          "attribute": "trialability",
+          "score": "strong"
+        },
+        {
+          "attribute": "observability",
+          "score": "partial"
+        }
+      ],
+      "suitable_for": "none-yet",
+      "chasm_blockers": [
+        "relative_advantage"
+      ]
+    }
+  },
+  "story": {
+    "journey": [
+      {
+        "phase": "P1 — Theory",
+        "title": "Two hypotheses, one pipeline",
+        "summary": "The literature gave the falsifier a shape: INT4 degradation would have to be statistically significant (p<=0.05, Wilcoxon signed-rank) AND exceed 10% relative WER increase to matter; INT8 was expected to be near-lossless. Two hypotheses fixed both sides of the curve before any measurement existed."
+      },
+      {
+        "phase": "P2 — Proof of concept",
+        "title": "The pipeline was verified before it was trusted",
+        "summary": "The whisper.cpp WER pipeline was proven end-to-end with tiny.en first (E-004) — transcription, WER computation, and the statistical test — so a surprising result could not be blamed on broken machinery."
+      },
+      {
+        "phase": "P5 — Evidence",
+        "title": "The degradation cliff was not there",
+        "summary": "100 random LibriSpeech test-clean samples, paired per-sample WER: Q4_0 5.15% vs F16 4.94% (+4.2%, p=0.57); Q8_0 4.73% (-4.2%, p=0.38). H-001's falsification condition met in the negative — INT4 shows no significant degradation on clean speech — and H-002 supported: INT8 is near-lossless. The honest headline: the expected cliff is absent, and the safe claim is 'INT8 near-lossless', because that was the hypothesis that survived."
+      }
+    ],
+    "dead_ends": []
+  },
+  "lessons": [
+    "Clean speech is the easiest case for quantization — the result is strongest where degradation is least likely. The interesting measurement is noisy speech, and this corpus does not cover it; that gap is the most valuable next step.",
+    "Verifying the pipeline on a small model (tiny.en) before the expensive large-v3 run separated machinery errors from surprising results — the falsified hypothesis would have been far less credible otherwise.",
+    "Writing two hypotheses (one expected to fail, one expected to hold) turned a partial result into a complete answer: both halves of the degradation curve are covered by pre-registered claims."
+  ],
+  "limitations": {
+    "baseline_wins": "The baseline was never beaten, nor was it supposed to be: FP16 remains the reference accuracy. What changed is the knowledge of how much accuracy lower precisions give up — on clean speech, a statistically undetectable amount.",
+    "untested": "100 random test-clean samples only; LibriSpeech test-other (noisy speech) was not run. Non-English corpora untested. The statistical power at n=100 bounds the detectable degradation — a sub-4% real penalty could hide below it.",
+    "next_level": "To extend the curve: run the same paired test on test-other, where degradation is expected to appear first, and increase n for tighter confidence intervals. That is a new measurement, not more of this one.",
+    "structural": "whisper.cpp quantization levels (Q8_0, Q4_0) are the ggml schemes, not all INT variants; results do not transfer to other runtimes. The 95% CI for Q4_0 is [3.49%, 7.00%] — the claim 'no degradation' holds only within that band."
+  },
+  "audience": {
+    "who_is_this_for": "Engineers choosing a whisper.cpp quantization level for memory-constrained deployments on clean speech — this is the measured trade-off table between size and WER they currently have to guess at.",
+    "not_for": "Anyone deploying on noisy or multilingual audio, where these numbers do not apply — this repository says so explicitly rather than letting the clean-speech result overgeneralise."
+  },
+  "repo": {
+    "structure": [
+      {
+        "path": "src/",
+        "what": "The implementation — public interface documented in the README"
+      },
+      {
+        "path": "bench/",
+        "what": "The benchmark scripts that produced the headline evidence"
+      },
+      {
+        "path": "poc/",
+        "what": "The first proof of the critical function, before hardening"
+      },
+      {
+        "path": "docs/01-theory.md",
+        "what": "What the literature establishes, with the SRC-### source ledger"
+      },
+      {
+        "path": "docs/03-log.md",
+        "what": "Append-only working log, including what was tried and failed"
+      },
+      {
+        "path": "docs/04-tradeoffs.md",
+        "what": "Scenarios, sensitivity points, tradeoff points, and risks"
+      },
+      {
+        "path": "docs/05-evidence.md",
+        "what": "Every claim with its command, environment, and observed result"
+      },
+      {
+        "path": "docs/adr/",
+        "what": "Decisions and the options rejected"
+      },
+      {
+        "path": ".sota/",
+        "what": "Machine-readable readiness and quality data"
+      }
+    ],
+    "links": {
+      "theory": "docs/01-theory.md",
+      "tradeoffs": "docs/04-tradeoffs.md",
+      "evidence": "docs/05-evidence.md",
+      "adrs": [
+        "docs/adr/D-000-template.md",
+        "docs/adr/D-001-public-interface.md"
+      ]
+    }
+  },
+  "reproduce": [
+    "make setup",
+    "make wer-bench"
+  ]
+}
