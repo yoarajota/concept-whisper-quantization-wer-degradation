@@ -49,27 +49,14 @@ func sampleWERs(results []SampleResult) []float64 {
 	return wer
 }
 
-func wilcoxonP(baseline, treatment []float64) float64 {
-	n := len(baseline)
-	if n == 0 || len(treatment) != n {
-		return 1.0
-	}
-	hasNaN := false
-	for i := range baseline {
-		if math.IsNaN(baseline[i]) || math.IsNaN(treatment[i]) {
-			hasNaN = true
-			break
-		}
-	}
-	if hasNaN {
-		return 1.0
-	}
-	type rd struct {
-		abs  float64
-		rank float64
-		sign int
-	}
-	diffs := make([]rd, 0, n)
+type signedRank struct {
+	abs  float64
+	rank float64
+	sign int
+}
+
+func computeSignedRanks(baseline, treatment []float64) []signedRank {
+	diffs := make([]signedRank, 0, len(baseline))
 	for i := range baseline {
 		d := treatment[i] - baseline[i]
 		if d == 0 {
@@ -79,15 +66,20 @@ func wilcoxonP(baseline, treatment []float64) float64 {
 		if d < 0 {
 			sign = -1
 		}
-		diffs = append(diffs, rd{abs: math.Abs(d), sign: sign})
+		diffs = append(diffs, signedRank{abs: math.Abs(d), sign: sign})
 	}
 	if len(diffs) == 0 {
-		return 1.0
+		return diffs
 	}
 	sort.Slice(diffs, func(i, j int) bool { return diffs[i].abs < diffs[j].abs })
 	for i := range diffs {
 		diffs[i].rank = float64(i + 1)
 	}
+	averageTiedRanks(diffs)
+	return diffs
+}
+
+func averageTiedRanks(diffs []signedRank) {
 	for j := 0; j < len(diffs); {
 		k := j + 1
 		for k < len(diffs) && diffs[k].abs == diffs[j].abs {
@@ -105,6 +97,9 @@ func wilcoxonP(baseline, treatment []float64) float64 {
 		}
 		j = k
 	}
+}
+
+func wilcoxonNormalP(diffs []signedRank) float64 {
 	var wPos, wNeg float64
 	for _, d := range diffs {
 		if d.sign > 0 {
@@ -115,9 +110,6 @@ func wilcoxonP(baseline, treatment []float64) float64 {
 	}
 	nn := float64(len(diffs))
 	w := math.Min(wPos, wNeg)
-	if nn <= 20 {
-		return exactWilcoxonP(w, int(nn))
-	}
 	meanW := nn * (nn + 1) / 4
 	varTie := 0.0
 	for i := 0; i < len(diffs); {
@@ -132,6 +124,41 @@ func wilcoxonP(baseline, treatment []float64) float64 {
 	stdW := math.Sqrt(nn*(nn+1)*(2*nn+1)/24 - varTie/48)
 	z := (w - meanW) / stdW
 	return 2 * normalCDF(-math.Abs(z))
+}
+
+func wilcoxonP(baseline, treatment []float64) float64 {
+	if len(baseline) == 0 || len(baseline) != len(treatment) {
+		return 1.0
+	}
+	if hasNaN(baseline) || hasNaN(treatment) {
+		return 1.0
+	}
+	diffs := computeSignedRanks(baseline, treatment)
+	if len(diffs) == 0 {
+		return 1.0
+	}
+	nn := len(diffs)
+	if nn <= 20 {
+		var wPos, wNeg float64
+		for _, d := range diffs {
+			if d.sign > 0 {
+				wPos += d.rank
+			} else {
+				wNeg += d.rank
+			}
+		}
+		return exactWilcoxonP(math.Min(wPos, wNeg), nn)
+	}
+	return wilcoxonNormalP(diffs)
+}
+
+func hasNaN(v []float64) bool {
+	for _, x := range v {
+		if math.IsNaN(x) {
+			return true
+		}
+	}
+	return false
 }
 
 func exactWilcoxonP(w float64, n int) float64 {
