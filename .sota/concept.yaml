@@ -2,7 +2,7 @@ id: C-003
 slug: whisper-quantization-wer-degradation
 title: "Whisper quantization WER degradation curve"
 archetype: implementation
-phase: P3
+phase: P4
 status: active
 
 # The framework is stack-agnostic — it only requires that the stack be declared, so gate
