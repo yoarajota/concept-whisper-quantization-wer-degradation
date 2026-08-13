@@ -10,6 +10,8 @@ headline:
     evidence: "E-005"
   - text: "INT8: word error rate 4.73% vs 4.94% (-4.2% relative, p=0.38) — near-lossless on large-v3 clean speech"
     evidence: "E-005"
+  - text: "INT5: word error rate 4.64% vs 4.94% (-6.1% relative, p=0.50) — the best measured level on this corpus"
+    evidence: "E-005"
   - text: "Model size: 2892MB (full precision) → 1543MB (INT8, -47%) → 830MB (INT4, -71%)"
     evidence: "E-005"
 
@@ -26,7 +28,7 @@ journey:
     summary: "The transcription-to-word-error-rate-to-statistical-test pipeline was proven end-to-end on a small model first (E-004), so a surprising result could not be blamed on broken machinery."
   - phase: "Evidence"
     title: "The degradation cliff was not there"
-    summary: "100 random clean-speech samples, paired per-sample word error rates: INT4 at 5.15% vs 4.94% full precision (+4.2%, p=0.57, not significant); INT8 at 4.73% (-4.2%, p=0.38). The expected cliff is absent. The honest headline is 'INT8 is near-lossless', because that was the hypothesis that survived — the INT4 result is the surprise, reported as a falsification rather than spun as a win."
+    summary: "100 random clean-speech samples, paired per-sample word error rates: INT8 at 4.73% vs 4.94% full precision (-4.2%, p=0.38); INT5 at 4.64% (-6.1%, p=0.50); INT4 at 5.15% (+4.2%, p=0.57, not significant). None of the degradation is statistically significant. The expected cliff is absent. The honest headline is 'INT8 is near-lossless', because that was the hypothesis that survived — the INT4 result is the surprise, reported as a falsification rather than spun as a win."
 
 lessons:
   - "Clean speech is the easiest case for quantization — the result is strongest where degradation is least likely. The interesting measurement is noisy speech, and this corpus does not cover it; that gap is the most valuable next step."
@@ -34,7 +36,7 @@ lessons:
   - "Writing two hypotheses — one expected to fail, one expected to hold — turned a partial result into a complete answer: both halves of the degradation curve are covered by claims made before the data."
 
 limitations:
-  baseline_wins: "The baseline was never beaten, nor was it supposed to be: full precision remains the reference accuracy. What changed is the knowledge of how much accuracy lower precisions give up — on clean speech, a statistically undetectable amount."
+  baseline_wins: "Full precision remains the reference accuracy, and no quantization level beat it with statistical significance — the measured differences (-4.2% to +4.2%) are noise-level. What changed is the knowledge of how much accuracy lower precisions give up on clean speech: a statistically undetectable amount."
   untested: "100 random clean-speech samples only; the noisy-speech half of the corpus was not run. Non-English corpora untested. The sample size bounds what a statistical test can detect — a real penalty below about 4% could hide under it."
   next_level: "To extend the curve: run the same paired test on noisy speech, where degradation is expected to appear first, and increase the sample size for tighter confidence intervals. That is a new measurement, not more of this one."
   structural: "The quantization schemes tested are those of the whisper.cpp runtime (Q8_0, Q4_0), not every INT variant; results do not transfer to other runtimes. The 95% confidence interval for INT4 is [3.49%, 7.00%] — 'no degradation' holds only within that band."
