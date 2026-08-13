@@ -63,7 +63,7 @@ while [ "$OFFSET" -lt "$TOTAL" ]; do
       -threads "$CPUS" \
       -offset "$OFFSET" -limit "$CHUNK_SIZE" \
       -levels "$LEVELS" \
-      > "$OUT" 2> "$OUT.log"
+      2>&1 1> "$OUT" | tee -a "$OUT.log"
   fi
   OFFSET=$((OFFSET + CHUNK_SIZE))
 done

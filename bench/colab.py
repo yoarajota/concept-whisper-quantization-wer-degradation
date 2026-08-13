@@ -155,19 +155,19 @@ def run_chunks():
     })
     script = str(WORK / "concept" / "bench" / "chunked.sh")
     print("running chunked benchmark (resumable)", flush=True)
-    r = subprocess.run(
-        f"sh {script} 200 2 'f16,q8_0,q5_0,q4_0'",
-        shell=True, env=env,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        text=True, bufsize=1,
-    )
-    for line in r.stdout.splitlines():
-        print(line, flush=True)
-    if r.returncode != 0:
-        sys.exit(r.returncode)
+    p = subprocess.Popen(f"sh {script} 200 2 'f16,q8_0,q5_0,q4_0'",
+                         shell=True, env=env,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                         text=True, bufsize=1)
+    assert p.stdout is not None
+    for line in p.stdout:
+        print(line.rstrip(), flush=True)
+    p.wait()
+    if p.returncode != 0:
+        sys.exit(p.returncode)
     done = len(list(OUT.glob("chunk-*.json"))) - sum(
-        1 for p in OUT.glob("chunk-*.json") if p.stat().st_size == 0)
-    print(f"\n{done} chunks complete", flush=True)
+        1 for pth in OUT.glob("chunk-*.json") if pth.stat().st_size == 0)
+    print(f"\nALL CHUNKS COMPLETE: {done} chunk files in {OUT}", flush=True)
 
 
 def merge():
@@ -178,7 +178,7 @@ def merge():
     r = subprocess.run(["werpipe", "merge"] + chunks, capture_output=True, text=True)
     (OUT / "final.json").write_text(r.stdout)
     print(r.stderr, flush=True)
-    print(f"final.json written to {OUT / 'final.json'}", flush=True)
+    print(f"\nDONE — merged results: {OUT / 'final.json'}", flush=True)
 
 
 if __name__ == "__main__":
