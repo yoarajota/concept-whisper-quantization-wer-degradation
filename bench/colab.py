@@ -30,7 +30,11 @@ OUT = None  # set after Drive mount
 
 def sh(cmd: str, **kw) -> subprocess.CompletedProcess:
     print(f"\n$ {cmd}", flush=True)
-    r = subprocess.run(cmd, shell=True, **kw)
+    r = subprocess.run(cmd, shell=True, capture_output=True, text=True, **kw)
+    if r.stdout:
+        print(r.stdout.rstrip(), flush=True)
+    if r.stderr:
+        print(r.stderr.rstrip(), flush=True)
     if r.returncode != 0:
         print(f"\nFAILED ({r.returncode}): {cmd}", flush=True)
         sys.exit(r.returncode)
@@ -66,7 +70,7 @@ def install_go():
 def build_whisper():
     wdir = WORK / "whisper.cpp"
     has_nvcc = shutil.which("nvcc") is not None
-    cuda_flag = "-DGGML_CUDA=1" if has_nvcc else ""
+    cuda_flag = "-DGGML_CUDA=1 -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc" if has_nvcc else ""
     print(f"CUDA build: {'yes' if has_nvcc else 'no — CPU build'} (GPU runtime needs "
           "Runtime > Change runtime type > T4/GPU)", flush=True)
     if not (wdir / "build" / "bin" / "whisper-cli").exists():
