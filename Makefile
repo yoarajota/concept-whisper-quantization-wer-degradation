@@ -1,4 +1,4 @@
-.PHONY: quality test tools build docker-build docker-run docker-models docker-up docker-down bench-chunk bench-probe
+.PHONY: quality test tools build docker-build docker-run docker-models docker-up docker-down bench-chunk bench-probe overnight
 
 quality:
 	go vet ./...
@@ -50,6 +50,10 @@ bench-probe:
 	  -audio /data -transcripts /data -model-dir /models \
 	  -whisper-cli /whisper.cpp/build/bin/whisper-cli -threads 2 \
 	  -limit 100 -levels "ggml-large-v3.bin,ggml-large-v3-q4_0.bin"
+
+# Detached resumable full-dataset run (see bench/overnight.sh for details).
+overnight:
+	sh bench/overnight.sh
 
 bin/werpipe: cmd/werpipe/main.go src/werpipe/*.go
 	go build -o bin/werpipe ./cmd/werpipe/

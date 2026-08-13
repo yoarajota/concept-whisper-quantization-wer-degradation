@@ -74,6 +74,16 @@ MODELS_DIR=/path/to/models LIBRISPEECH=/path/to/flat make bench-probe
 `-offset` / `-limit` slice the dataset deterministically (sorted sample IDs), so a
 chunk is reproducible regardless of filesystem ordering.
 
+For the full overnight run, launch once from the host and forget it:
+
+```bash
+sh bench/overnight.sh                          # detached, resumable, all 4 levels
+docker logs -f werpipe-overnight               # live progress
+```
+
+`bench/overnight.sh` preflights every model (fails fast if one is corrupt),
+caps CPU at `CPUS` (default 6), and skips chunks already completed on re-launch.
+
 ## How it works
 
 The `werpipe` package [E-003] wraps whisper.cpp via `os/exec`, normalises output,

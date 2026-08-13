@@ -25,6 +25,29 @@ mkdir -p "$OUT_DIR"
 TOTAL=$(find "$AUDIO_DIR" -name '*.flac' | wc -l)
 echo "total samples: $TOTAL, chunk size: $CHUNK_SIZE, cpus: $CPUS, levels: $LEVELS"
 
+FIRST_AUDIO=$(find "$AUDIO_DIR" -name '*.flac' | sort | head -1)
+if [ -z "$FIRST_AUDIO" ]; then
+  echo "no audio files found under $AUDIO_DIR" >&2
+  exit 1
+fi
+
+echo "preflight: loading each model once"
+for LVL in $(echo "$LEVELS" | tr ',' ' '); do
+  MODEL="$LVL"
+  case "$LVL" in
+    f16)  MODEL="ggml-large-v3.bin" ;;
+    q8_0) MODEL="ggml-large-v3-q8_0.bin" ;;
+    q5_0) MODEL="ggml-large-v3-q5_0.bin" ;;
+    q4_0) MODEL="ggml-large-v3-q4_0.bin" ;;
+  esac
+  if ! "$WHISPER_CLI" -m "$MODEL_DIR/$MODEL" -f "$FIRST_AUDIO" --no-timestamps -t 2 -l en > /dev/null 2>&1; then
+    echo "preflight FAILED for $MODEL — model file is missing or corrupt" >&2
+    echo "run: docker-models target, or quantize manually" >&2
+    exit 1
+  fi
+  echo "  $MODEL OK"
+done
+
 OFFSET=0
 CHUNK=0
 while [ "$OFFSET" -lt "$TOTAL" ]; do
