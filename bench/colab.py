@@ -76,7 +76,7 @@ def build_whisper():
     if not (wdir / "build" / "bin" / "whisper-cli").exists():
         sh(f"rm -rf {wdir} && git clone --depth 1 --branch v1.9.2 "
            "https://github.com/ggml-org/whisper.cpp " + str(wdir))
-        sh(f"cmake -B {wdir}/build {cuda_flag} -DCMAKE_BUILD_TYPE=Release")
+        sh(f"cmake -B {wdir}/build -S {wdir} {cuda_flag} -DCMAKE_BUILD_TYPE=Release")
         sh(f"cmake --build {wdir}/build -j4 --config Release")
 
 
