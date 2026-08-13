@@ -115,11 +115,12 @@ def flatten(flat: pathlib.Path):
     flat.mkdir(parents=True, exist_ok=True)
     trans = {}
     for tf in glob.glob(str(src) + "/**/*.trans.txt", recursive=True):
+        key = os.path.relpath(os.path.dirname(tf), str(src))
         with open(tf) as fh:
             for line in fh:
                 parts = line.split(" ", 1)
                 if len(parts) == 2:
-                    trans[parts[0]] = parts[1].strip().lower()
+                    trans[os.path.join(key, parts[0])] = parts[1].strip().lower()
     count = 0
     for audio in glob.glob(str(src) + "/**/*.flac", recursive=True):
         rel = os.path.relpath(audio, str(src))[:-5]
