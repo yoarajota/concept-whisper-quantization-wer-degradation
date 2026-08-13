@@ -19,7 +19,7 @@ const $ = sel => document.querySelector(sel);
 
 function chip(verdict, small) {
   const known = ["supported", "partially-supported", "falsified", "untested"];
-  const cls = known.includes(verdict) ? verdict : "state";
+  const cls = known.includes(verdict) ? verdict : (verdict === "active" ? "active" : "state");
   const label = verdict.replace(/-/g, " ");
   return `<span class="chip ${esc(cls)}${small ? " chip-small" : ""}" aria-label="Status: ${label}">${esc(label)}</span>`;
 }
@@ -93,7 +93,8 @@ function chart(d) {
 
 const LEGEND = [
   ["verdict chip", "the bottom line of this project — green means the claim held, red means it was disproved, amber means partly, dashed means not decided"],
-  ["paused / archived chip", "the work was deliberately stopped at this point — the verdict below is the last state it reached"],
+  ["paused / archived chip", "the work was deliberately stopped at this point — the verdicts below are the last state it reached"],
+  ["in progress chip", "this project is still running — the verdicts below are not final"],
   ["scenario chips (pass / fail / unverified)", "a concrete situation the concept was required to handle, and whether it was demonstrated, failed, or never measured"],
   ["diffusion chips (strong / partial / weak)", "how ready each adoption-relevant trait is today, in the author's assessment"],
   ["weakest link", "the least proven part of the system as a whole — what most limits using it for real"],
@@ -250,6 +251,7 @@ render();
 const body = document.body;
 const key = "artifact-ink";
 try { if (localStorage.getItem(key) === "1") body.classList.add("ink"); } catch (e) {}
+$("#toggle").setAttribute("aria-pressed", body.classList.contains("ink") ? "true" : "false");
 $("#toggle").addEventListener("click", () => {
   body.classList.toggle("ink");
   $("#toggle").setAttribute("aria-pressed", body.classList.contains("ink") ? "true" : "false");
