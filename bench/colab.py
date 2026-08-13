@@ -30,15 +30,16 @@ OUT = None  # set after Drive mount
 
 def sh(cmd: str, **kw) -> subprocess.CompletedProcess:
     print(f"\n$ {cmd}", flush=True)
-    r = subprocess.run(cmd, shell=True, capture_output=True, text=True, **kw)
-    if r.stdout:
-        print(r.stdout.rstrip(), flush=True)
-    if r.stderr:
-        print(r.stderr.rstrip(), flush=True)
-    if r.returncode != 0:
-        print(f"\nFAILED ({r.returncode}): {cmd}", flush=True)
-        sys.exit(r.returncode)
-    return r
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                         text=True, bufsize=1, **kw)
+    assert p.stdout is not None
+    for line in p.stdout:
+        print(line.rstrip(), flush=True)
+    p.wait()
+    if p.returncode != 0:
+        print(f"\nFAILED ({p.returncode}): {cmd}", flush=True)
+        sys.exit(p.returncode)
+    return subprocess.CompletedProcess(cmd, p.returncode, "", "")
 
 
 def drive_mount():
