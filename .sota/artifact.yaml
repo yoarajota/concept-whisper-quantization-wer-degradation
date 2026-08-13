@@ -3,10 +3,10 @@
 
 pitch:
   one_line_answer: "INT8 is near-lossless on clean speech (4.73% word error rate vs 4.94% at full precision, 47% smaller) — but so is INT4: 5.15% vs 4.94% (+4.2%, statistically not significant) and 71% smaller. The predicted degradation cliff does not exist on this corpus."
-  elevator: "The received wisdom: quantizing Whisper below full precision hurts transcription accuracy, so pick the highest bit-width you can afford. This project measured the actual degradation curve on the LibriSpeech clean-speech corpus with a paired statistical test (Wilcoxon signed-rank) — and found no statistically significant word-error-rate penalty even at INT4. large-v3 resists quantization far better than predicted on clean speech; the size savings are real (71% at Q4_0), and the accuracy cost, on this corpus, is not measurable."
+  elevator: "The received wisdom: quantizing Whisper below full precision hurts transcription accuracy, so pick the highest bit-width you can afford. This project measured the actual degradation curve on the LibriSpeech clean-speech corpus with a statistical test built to catch a real difference, not just eyeball one — and found no significant word-error-rate penalty even at INT4. large-v3 resists quantization far better than predicted on clean speech, and the size savings are real: 71% at Q4_0."
 
 headline:
-  - text: "INT4: word error rate 5.15% vs 4.94% at full precision (+4.2% relative, p=0.57) — not statistically significant, crossing neither the 10% nor the significance thresholds"
+  - text: "INT4: word error rate 5.15% vs 4.94% at full precision (+4.2% relative) — not statistically significant (p=0.57: a gap this small would show up by chance more than half the time), crossing neither the 10% nor the significance thresholds"
     evidence: "E-005"
   - text: "INT8: word error rate 4.73% vs 4.94% (-4.2% relative, p=0.38) — near-lossless on large-v3 clean speech"
     evidence: "E-005"
@@ -33,13 +33,13 @@ journey:
 lessons:
   - "Clean speech is the easiest case for quantization — the result is strongest where degradation is least likely. The interesting measurement is noisy speech, and this corpus does not cover it; that gap is the most valuable next step."
   - "Verifying the pipeline on a small model before the expensive large-v3 run separated machinery errors from surprising results — the falsified hypothesis would have been far less credible otherwise."
-  - "Writing two hypotheses — one expected to fail, one expected to hold — turned a partial result into a complete answer: both halves of the degradation curve are covered by claims made before the data."
+  - "A result labeled 'partially supported' isn't automatically a hedge — check whether the surprising half was actually predicted in advance before you discount it."
 
 limitations:
   baseline_wins: "Full precision remains the reference accuracy, and no quantization level beat it with statistical significance — the measured differences (-4.2% to +4.2%) are noise-level. What changed is the knowledge of how much accuracy lower precisions give up on clean speech: a statistically undetectable amount."
   untested: "100 random clean-speech samples only; the noisy-speech half of the corpus was not run. Non-English corpora untested. The sample size bounds what a statistical test can detect — a real penalty below about 4% could hide under it."
   next_level: "To extend the curve: run the same paired test on noisy speech, where degradation is expected to appear first, and increase the sample size for tighter confidence intervals. That is a new measurement, not more of this one."
-  structural: "The quantization schemes tested are those of the whisper.cpp runtime (Q8_0, Q4_0), not every INT variant; results do not transfer to other runtimes. The 95% confidence interval for INT4 is [3.49%, 7.00%] — 'no degradation' holds only within that band."
+  structural: "The quantization schemes tested are those of the whisper.cpp runtime (Q8_0, Q4_0), not every INT variant; results do not transfer to other runtimes. The 95% confidence interval for INT4 — the range that very likely contains the true value — is [3.49%, 7.00%], so 'no degradation' holds only within that band."
 
 audience:
   who_is_this_for: "Engineers choosing a whisper.cpp quantization level for memory-constrained deployments on clean speech — this is the measured trade-off table between size and accuracy they currently have to guess at."
