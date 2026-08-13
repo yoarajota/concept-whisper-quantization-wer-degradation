@@ -65,10 +65,14 @@ def install_go():
 
 def build_whisper():
     wdir = WORK / "whisper.cpp"
+    has_nvcc = shutil.which("nvcc") is not None
+    cuda_flag = "-DGGML_CUDA=1" if has_nvcc else ""
+    print(f"CUDA build: {'yes' if has_nvcc else 'no — CPU build'} (GPU runtime needs "
+          "Runtime > Change runtime type > T4/GPU)", flush=True)
     if not (wdir / "build" / "bin" / "whisper-cli").exists():
         sh(f"rm -rf {wdir} && git clone --depth 1 --branch v1.9.2 "
            "https://github.com/ggml-org/whisper.cpp " + str(wdir))
-        sh(f"cmake -B {wdir}/build -DGGML_CUDA=1 -DCMAKE_BUILD_TYPE=Release")
+        sh(f"cmake -B {wdir}/build {cuda_flag} -DCMAKE_BUILD_TYPE=Release")
         sh(f"cmake --build {wdir}/build -j4 --config Release")
 
 
@@ -172,7 +176,12 @@ def merge():
 
 
 if __name__ == "__main__":
-    sh("nvidia-smi --query-gpu=name,memory.total --format=csv,noheader")
+    gpu = shutil.which("nvidia-smi")
+    if gpu:
+        sh("nvidia-smi --query-gpu=name,memory.total --format=csv,noheader")
+    else:
+        print("no GPU detected — running on CPU (works, but ~50h total).", flush=True)
+        print("For ~10h: Runtime > Change runtime type > T4 GPU, then re-run.", flush=True)
     WORK.mkdir(parents=True, exist_ok=True)
     drive_mount()
     install_go()
