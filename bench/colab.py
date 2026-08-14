@@ -196,4 +196,8 @@ if __name__ == "__main__":
     fetch_dataset()
     build_werpipe()
     run_chunks()
-    merge()
+    if "START_OFFSET" in os.environ or "MAX_CHUNKS" in os.environ:
+        print("\nPARTIAL SLICE DONE — download this Drive folder's chunk-*.json and "
+              "merge with the other slices' files.", flush=True)
+    else:
+        merge()

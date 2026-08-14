@@ -22,8 +22,12 @@ OUT_DIR="${OUT_DIR:-/out}"
 
 mkdir -p "$OUT_DIR"
 
+START_OFFSET="${START_OFFSET:-0}"
+MAX_CHUNKS="${MAX_CHUNKS:-999999}"
+
 TOTAL=$(find "$AUDIO_DIR" -name '*.flac' | wc -l)
 echo "total samples: $TOTAL, chunk size: $CHUNK_SIZE, cpus: $CPUS, levels: $LEVELS"
+echo "slice: start offset $START_OFFSET, max chunks $MAX_CHUNKS"
 
 FIRST_AUDIO=$(find "$AUDIO_DIR" -name '*.flac' | sort | head -1)
 if [ -z "$FIRST_AUDIO" ]; then
@@ -48,15 +52,18 @@ for LVL in $(echo "$LEVELS" | tr ',' ' '); do
   echo "  $MODEL OK"
 done
 
-OFFSET=0
-CHUNK=0
-while [ "$OFFSET" -lt "$TOTAL" ]; do
-  CHUNK=$((CHUNK + 1))
-  OUT="$OUT_DIR/chunk-$CHUNK.json"
-  if [ -s "$OUT" ]; then
-    echo "=== chunk $CHUNK: already done, skipping (offset $OFFSET) ==="
+OFFSET=$START_OFFSET
+CHUNK=1
+while [ "$OFFSET" -lt "$TOTAL" ] && [ "$CHUNK" -le "$MAX_CHUNKS" ]; do
+  if [ "$START_OFFSET" -gt 0 ]; then
+    OUT="$OUT_DIR/chunk-$OFFSET.json"
   else
-    echo "=== chunk $CHUNK: offset $OFFSET, limit $CHUNK_SIZE ==="
+    OUT="$OUT_DIR/chunk-$CHUNK.json"
+  fi
+  if [ -s "$OUT" ]; then
+    echo "=== offset $OFFSET: already done, skipping ==="
+  else
+    echo "=== offset $OFFSET, limit $CHUNK_SIZE ==="
     werpipe \
       -audio "$AUDIO_DIR" -transcripts "$TRANS_DIR" \
       -model-dir "$MODEL_DIR" -whisper-cli "$WHISPER_CLI" \
@@ -66,6 +73,7 @@ while [ "$OFFSET" -lt "$TOTAL" ]; do
       2>&1 1> "$OUT" | tee -a "$OUT.log"
   fi
   OFFSET=$((OFFSET + CHUNK_SIZE))
+  CHUNK=$((CHUNK + 1))
 done
 
 echo "=== merging $CHUNK chunks ==="
