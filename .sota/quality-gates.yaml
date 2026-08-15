@@ -51,7 +51,7 @@ iso5055:
   last_run:
     date: "2026-08-12"
     exit_code: 0
-    commit: 98eaa82d73aee318fa2a82573daeecb7b0a17ae3
+    commit: 997580c7bce0365c4d6fca77dfb4864143d95ca7
   thresholds:
     cyclomatic_complexity_max: 15
     function_length_max: 60
@@ -93,8 +93,8 @@ complexity_ledger:
 
 diffusion:
   relative_advantage:
-    score: partial
-    justification: "67% model size reduction on tiny.en (75MB -> 25MB, E-004). WER degradation curve for large-v3 not yet measured; the concept's question is exactly quantifying the accuracy-cost of this compression. Literature [SRC-004] suggests 70% compression is achievable with <2% WER penalty on larger models."
+    score: strong
+    justification: "71% model size reduction (2892MB -> 830MB) at Q4_0 with only +4.9% relative WER increase (p=0.0014, E-006). INT8/INT5 slightly improve WER (-1.9%/-3.0%) at 47-65% size reduction. The accuracy-cost of every whisper.cpp quantization level on large-v3 clean speech is now quantified."
   compatibility:
     score: partial
     justification: "Drop-in for any whisper.cpp deployment; uses standard ggml quantization formats. IRL 3 seam (core<->whisper-cpp) limits confidence until integration testing with fault injection exists (R-002)."
@@ -105,14 +105,13 @@ diffusion:
     score: strong
     justification: "Docker compose reproduces the pipeline in < 2 minutes with tiny.en model and sample audio. Full benchmark requires downloading large-v3 (~2.9GB) and LibriSpeech test-clean (~346MB)."
   observability:
-    score: partial
-    justification: "JSON output with per-sample WER, aggregate stats, p-values, and bootstrap 95% CI. Headline result (large-v3 degradation curve) requires the full dataset run; intermediate results visible as they complete."
-  suitable_for: none-yet
-  chasm_blockers: [relative_advantage]
+    score: strong
+    justification: "Full per-sample WER data for all 2620 samples across 4 levels; final.json mergeable by anyone (E-006). Headline result is a single table."
+  suitable_for: early-adopters
+  chasm_blockers: []
   note: >
-    H-001 falsified: Q4_0 large-v3 shows no significant WER degradation on 100 clean
-    speech samples (+4.2%, p=0.57). The degradation is below the 10% threshold and not
-    statistically significant. H-002 supported: Q8_0 is near-lossless. The answer to
-    the concept question is that Q4_0 is still viable on clean speech for large-v3.
-    What was learned: large-v3 resists quantization better than predicted — the practical
-    frontier for INT4 on clean speech is farther than expected.
+    Final result (E-006): the first statistically significant WER degradation appears
+    at INT4 (+4.9% rel, p=0.0014); INT8/INT5 slightly improve WER. The 100-sample
+    run (E-005) could not detect these effects — full dataset was required. Answer to
+    the concept question: INT4 is the degradation frontier on clean speech, at half
+    the predicted magnitude.

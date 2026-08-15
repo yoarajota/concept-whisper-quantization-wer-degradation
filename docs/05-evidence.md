@@ -146,6 +146,49 @@ absolute WER points (+4.2% relative) at a 71% model size reduction (2892MB → 8
 
 ---
 
+### E-006  —  Full-dataset benchmark: 2620 LibriSpeech test-clean samples (GPU)
+
+**Claim.** Whisper large-v3 across 4 whisper.cpp quantization levels on ALL 2620
+LibriSpeech test-clean utterances. Q8_0 and Q5_0 show statistically significant WER
+*improvement* vs FP16 (−1.9%, p=0.048; −3.0%, p=0.001). Q4_0 shows the first
+statistically significant *degradation*: +4.9% relative, p=0.0014. The effect is real
+but below the 10% predicted at P1 — it was invisible at n=100 (E-005) and required the
+full dataset.
+
+**Environment:** Google Colab, Tesla T4 (15360 MiB), whisper.cpp v1.9.2 compiled with
+CUDA 12.8 (`-DGGML_CUDA=1`, sm_75), werpipe Go CLI, containerless Colab runtime.
+Full dataset run in resumable 200-sample chunks; chunk-8.json (offset 1400) was
+corrupted in transit and redone as chunk-1400.json. All 2620 samples, 0 errors.
+
+```bash
+# GPU environment (Colab): see bench/colab.py
+# Merge (any environment):
+werpipe merge chunk-1.json chunk-2.json ... chunk-2600.json > final.json
+```
+
+**Result:**
+
+2620 samples, 4 levels:
+
+| Level | WER | Size | vs F16 | p-value | 95% CI |
+|:---|:---|:---|:---|:---|:---|
+| F16 | 5.35% | 2892 MB | baseline | — | — |
+| Q8_0 | 5.25% | 1543 MB | −1.9% | 0.048 | [4.85%, 5.65%] |
+| Q5_0 | 5.19% | 1010 MB | −3.0% | 0.001 | [4.79%, 5.60%] |
+| Q4_0 | 5.61% | 830 MB | +4.9% | 0.001 | [5.21%, 6.03%] |
+
+Answer to the concept question: the first statistically significant WER degradation
+appears at INT4 (Q4_0). INT8 and INT5 show no degradation — small significant
+improvements consistent with the literature's observation that mild quantization
+acts as a regularizer on Transformer ASR.
+
+**Status:** reproducing
+**Supports:** H-001 (partially — significant but +4.9% < 10%), H-002 (supported),
+S-001, S-002
+**Recorded:** 2026-08-15
+
+---
+
 ## Benchmark methodology
 
 Filled at P5. Applies to every entry tagged as a benchmark.

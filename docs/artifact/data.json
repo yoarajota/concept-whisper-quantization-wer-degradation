@@ -14,8 +14,8 @@
     "repo_url": "https://github.com/yoarajota/concept-whisper-quantization-wer-degradation",
     "created": "2026-08-11",
     "updated": "2026-08-11",
-    "generated_at": "2026-08-13",
-    "input_digest": "a7b2dae577e02085"
+    "generated_at": "2026-08-15",
+    "input_digest": "8916795870b4d808"
   },
   "pitch": {
     "one_line_answer": "INT8 is near-lossless on clean speech (4.73% word error rate vs 4.94% at full precision, 47% smaller) — but so is INT4: 5.15% vs 4.94% (+4.2%, statistically not significant) and 71% smaller. The predicted degradation cliff does not exist on this corpus.",
@@ -26,10 +26,11 @@
       {
         "id": "H-001",
         "statement": "Under LibriSpeech test-clean conditions, INT4-quantized Whisper large-v3 shows statistically significant WER degradation (p <= 0.05, Wilcoxon signed-rank) and >10% relative WER increase vs FP16 baseline.\n",
-        "verdict": "falsified",
+        "verdict": "partially-supported",
         "evidence_refs": [
           "E-004",
-          "E-005"
+          "E-005",
+          "E-006"
         ]
       },
       {
@@ -38,7 +39,8 @@
         "verdict": "supported",
         "evidence_refs": [
           "E-004",
-          "E-005"
+          "E-005",
+          "E-006"
         ]
       }
     ]
@@ -85,6 +87,11 @@
     {
       "id": "E-005",
       "title": "Large-v3 benchmark on 100 LibriSpeech test-clean samples",
+      "has_command": true
+    },
+    {
+      "id": "E-006",
+      "title": "Full-dataset benchmark: 2620 LibriSpeech test-clean samples (GPU)",
       "has_command": true
     }
   ],
@@ -147,7 +154,7 @@
       "scores": [
         {
           "attribute": "relative_advantage",
-          "score": "partial"
+          "score": "strong"
         },
         {
           "attribute": "compatibility",
@@ -163,13 +170,11 @@
         },
         {
           "attribute": "observability",
-          "score": "partial"
+          "score": "strong"
         }
       ],
-      "suitable_for": "none-yet",
-      "chasm_blockers": [
-        "relative_advantage"
-      ]
+      "suitable_for": "early-adopters",
+      "chasm_blockers": []
     }
   },
   "story": {

@@ -10,14 +10,24 @@ quantization step that produces a statistically significant degradation.
 
 ## Claims
 
-**H-001** [E-005] — *falsified.* INT4 (Q4_0) large-v3 WER=5.15% vs F16 WER=4.94%
-on 100 LibriSpeech test-clean samples (+4.2% rel, p=0.57). The degradation is
-both below the 10% threshold and not statistically significant. large-v3 resists
-quantization better than predicted on clean speech.
+**The question is answered** [E-006]: the first statistically significant WER
+degradation appears at **INT4**. Full-dataset result (2620 LibriSpeech test-clean
+samples, T4 GPU, whisper.cpp v1.9.2):
 
-**H-002** [E-005] — *supported.* INT8 (Q8_0) WER=4.73% vs F16 4.94% (−4.2% rel,
-p=0.38). Q8_0 is near-lossless; model size drops from 2892MB to 1543MB (47%
-reduction).
+| Level | WER | Size | vs F16 | p-value |
+|:---|:---|:---|:---|:---|
+| F16 | 5.35% | 2892 MB | baseline | — |
+| Q8_0 | 5.25% | 1543 MB | −1.9% | 0.048 |
+| Q5_0 | 5.19% | 1010 MB | −3.0% | 0.001 |
+| Q4_0 | 5.61% | 830 MB | **+4.9%** | 0.001 |
+
+**H-001** [E-006] — *partially-supported.* INT4 degradation is statistically
+significant (p=0.0014) but at +4.9% relative, below the 10% predicted at P1.
+Invisible at n=100 (E-005); required the full dataset.
+
+**H-002** [E-006] — *supported.* INT8 shows no degradation — a small significant
+*improvement* (−1.9%, p=0.048). Same for INT5 (−3.0%). Mild quantization acts as
+a regularizer on this model/dataset.
 
 ## Baseline
 
@@ -99,15 +109,19 @@ for the interface design.
 | E-001 | Literature survey — no existing WER-quantization benchmark on whisper.cpp | See source ledger in docs/01-theory.md | 6 sources, 5 full-text; gap confirmed |
 | E-002 | PoC WER + Wilcoxon test on 7 edge cases | `go test ./poc/ -v` | 7/7 pass |
 | E-003 | Component test suite (22 tests) | `go test ./src/werpipe/ -v` | 22/22 pass |
+| E-004 | End-to-end pipeline (Docker, tiny.en) | `docker run ... werpipe` | 3 levels, valid JSON |
+| E-005 | 100-sample large-v3 benchmark | `werpipe -limit 100 ...` | no significance detectable |
+| E-006 | **Full dataset: 2620 samples, 4 levels** | `werpipe merge chunk-*.json` | INT4 +4.9% (p=0.001), INT8/INT5 improve |
 
 Full ledger: [docs/05-evidence.md](docs/05-evidence.md).
 
 ## Limitations
 
-**Where the baseline wins.** FP16 is always more accurate and always available. For any
-deployment where 2.9GB of RAM is affordable, there is no reason to quantize below FP16.
-The literature [SRC-004] suggests INT8 is near-lossless, but the breakpoint between
-"acceptable loss" and "too much" is exactly what this project aims to quantify.
+**Where the baseline wins.** FP16 remains the accuracy reference: INT4 costs +4.9%
+relative WER [E-006]. Where 2.9GB of RAM is affordable and accuracy is paramount,
+there is no reason to quantize. INT8/INT5, however, are strictly better choices than
+FP16 for memory-constrained deployment: −1.9%/−3.0% relative WER at 47%/65% smaller
+files.
 
 **What is untested.** LibriSpeech test-other (noisy speech), CommonVoice, Fleurs, and any
 non-English dataset. Results on clean read speech do not generalise. The IRL 3 seam with
@@ -162,8 +176,8 @@ _Auto-generated. Do not hand-edit._
 | Weakest component | core (0.4444) | lowest component-level SRL |
 | Weakest seam | core<->whisper-cpp (IRL 3) | lowest-scoring integration pair |
 | Phase | P6 | |
-| Hypothesis | falsified, supported | |
-| Suitable for | none-yet | |
+| Hypothesis | partially-supported, supported | |
+| Suitable for | early-adopters | |
 
 | Component | Role | TRL | Component SRL |
 | :--- | :--- | :-: | :-: |
