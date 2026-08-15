@@ -46,7 +46,7 @@ sh models/download-ggml-model.sh large-v3
 ./build/bin/quantize models/ggml-large-v3.bin models/ggml-large-v3-q4_0.bin q4_0
 
 # 2. Run the pipeline
-cd concept-whisper-quantization-wer-degradation
+cd whisper-quantization-wer-degradation
 go run ./poc/ \
   -AUDIO_DIR /path/to/LibriSpeech/test-clean \
   -TRANS_DIR /path/to/LibriSpeech/test-clean \

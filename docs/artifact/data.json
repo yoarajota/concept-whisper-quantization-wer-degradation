@@ -11,15 +11,15 @@
       "speech-processing",
       "model-compression"
     ],
-    "repo_url": "https://github.com/yoarajota/concept-whisper-quantization-wer-degradation",
+    "repo_url": "https://github.com/yoarajota/whisper-quantization-wer-degradation",
     "created": "2026-08-11",
     "updated": "2026-08-11",
     "generated_at": "2026-08-15",
-    "input_digest": "8916795870b4d808"
+    "input_digest": "2b87e5bd9f40f3b7"
   },
   "pitch": {
-    "one_line_answer": "INT8 is near-lossless on clean speech (4.73% word error rate vs 4.94% at full precision, 47% smaller) — but so is INT4: 5.15% vs 4.94% (+4.2%, statistically not significant) and 71% smaller. The predicted degradation cliff does not exist on this corpus.",
-    "elevator": "The received wisdom: quantizing Whisper below full precision hurts transcription accuracy, so pick the highest bit-width you can afford. This project measured the actual degradation curve on the LibriSpeech clean-speech corpus with a statistical test built to catch a real difference, not just eyeball one — and found no significant word-error-rate penalty even at INT4. large-v3 resists quantization far better than predicted on clean speech, and the size savings are real: 71% at Q4_0."
+    "one_line_answer": "The first statistically significant accuracy loss appears at INT4: +4.9% word error rate on clean speech (p=0.001) for a 71% smaller model — while INT8 and INT5 are slightly better than full precision.",
+    "elevator": "The received wisdom: quantizing Whisper below full precision hurts transcription accuracy, so pick the highest bit-width you can afford. This project measured the actual degradation curve on the LibriSpeech clean-speech corpus with a statistical test built to catch a real difference, not just eyeball one. It took all 2620 utterances to see the truth: a 100-sample run found nothing, the full dataset found everything. INT8 and INT5 slightly improve accuracy (-1.9% and -3.0% word error rate). The first real degradation appears at INT4 — and it is half the size everyone predicted: +4.9% for a 71% smaller model."
   },
   "verdict": {
     "hypotheses": [
@@ -47,19 +47,23 @@
   },
   "headline": [
     {
-      "text": "INT4: word error rate 5.15% vs 4.94% at full precision (+4.2% relative) — not statistically significant (p=0.57: a gap this small would show up by chance more than half the time), crossing neither the 10% nor the significance thresholds",
-      "evidence": "E-005"
+      "text": "INT4 (4-bit): word error rate 5.61% vs 5.35% at full precision (+4.9% relative, p=0.001) — the first statistically significant degradation, at half the predicted magnitude",
+      "evidence": "E-006"
     },
     {
-      "text": "INT8: word error rate 4.73% vs 4.94% (-4.2% relative, p=0.38) — near-lossless on large-v3 clean speech",
-      "evidence": "E-005"
+      "text": "INT8 (8-bit): 5.25% vs 5.35% (-1.9%, p=0.048) — no degradation; a small statistically significant improvement",
+      "evidence": "E-006"
     },
     {
-      "text": "INT5: word error rate 4.64% vs 4.94% (-6.1% relative, p=0.50) — the best measured level on this corpus",
-      "evidence": "E-005"
+      "text": "INT5 (5-bit): 5.19% vs 5.35% (-3.0%, p=0.001) — the best measured level on this corpus",
+      "evidence": "E-006"
     },
     {
-      "text": "Model size: 2892MB (full precision) → 1543MB (INT8, -47%) → 830MB (INT4, -71%)",
+      "text": "Model size: 2892MB (full precision) → 1543MB (INT8) → 1010MB (INT5) → 830MB (INT4, -71%)",
+      "evidence": "E-006"
+    },
+    {
+      "text": "A 100-sample run detected none of this (E-005): the full 2620-sample dataset was required for the statistical test to see effects this small",
       "evidence": "E-005"
     }
   ],
@@ -190,23 +194,28 @@
         "summary": "The transcription-to-word-error-rate-to-statistical-test pipeline was proven end-to-end on a small model first (E-004), so a surprising result could not be blamed on broken machinery."
       },
       {
-        "phase": "Evidence",
-        "title": "The degradation cliff was not there",
-        "summary": "100 random clean-speech samples, paired per-sample word error rates: INT8 at 4.73% vs 4.94% full precision (-4.2%, p=0.38); INT5 at 4.64% (-6.1%, p=0.50); INT4 at 5.15% (+4.2%, p=0.57, not significant). None of the degradation is statistically significant. The expected cliff is absent. The honest headline is 'INT8 is near-lossless', because that was the hypothesis that survived — the INT4 result is the surprise, reported as a falsification rather than spun as a win."
+        "phase": "First measurement",
+        "title": "100 samples said nothing",
+        "summary": "A 100-sample run across all four quantization levels found no statistically significant difference anywhere: INT4 at +4.2% looked like noise (p=0.57 — a gap this small would show up by chance more than half the time). The honest reading was 'we cannot detect degradation', not 'there is none'."
+      },
+      {
+        "phase": "Full dataset",
+        "title": "2620 samples found what 100 could not",
+        "summary": "Running the entire corpus turned every ambiguity into a result. INT8 and INT5 came out slightly better than full precision (-1.9% and -3.0%, both statistically significant) — mild quantization acting as a regularizer, exactly as the literature hinted. INT4 came out significantly worse: +4.9%, p=0.001. The cliff exists, it just sits at 4 bits and is half as tall as predicted."
       }
     ],
     "dead_ends": []
   },
   "lessons": [
-    "Clean speech is the easiest case for quantization — the result is strongest where degradation is least likely. The interesting measurement is noisy speech, and this corpus does not cover it; that gap is the most valuable next step.",
-    "Verifying the pipeline on a small model before the expensive large-v3 run separated machinery errors from surprising results — the falsified hypothesis would have been far less credible otherwise.",
-    "A result labeled 'partially supported' isn't automatically a hedge — check whether the surprising half was actually predicted in advance before you discount it."
+    "Sample size decides which questions you get to ask. At 100 samples the answer was 'no significant degradation anywhere'; at 2620 the answer was a clean frontier: INT4. When a null result has practical consequences, treat the sample size as part of the claim — 'no detectable effect' and 'no effect' are different statements.",
+    "Verifying the pipeline on a small model before the expensive large-v3 run separated machinery errors from surprising results — the surprising final numbers would have been far less credible otherwise.",
+    "Predicting the direction of an effect is easier than predicting its size. The INT4 degradation arrived exactly where expected, at one half the predicted magnitude — which is still useful, because the practical question was always 'how much does 71% compression cost'."
   ],
   "limitations": {
-    "baseline_wins": "Full precision remains the reference accuracy, and no quantization level beat it with statistical significance — the measured differences (-4.2% to +4.2%) are noise-level. What changed is the knowledge of how much accuracy lower precisions give up on clean speech: a statistically undetectable amount.",
-    "untested": "100 random clean-speech samples only; the noisy-speech half of the corpus was not run. Non-English corpora untested. The sample size bounds what a statistical test can detect — a real penalty below about 4% could hide under it.",
-    "next_level": "To extend the curve: run the same paired test on noisy speech, where degradation is expected to appear first, and increase the sample size for tighter confidence intervals. That is a new measurement, not more of this one.",
-    "structural": "The quantization schemes tested are those of the whisper.cpp runtime (Q8_0, Q4_0), not every INT variant; results do not transfer to other runtimes. The 95% confidence interval for INT4 — the range that very likely contains the true value — is [3.49%, 7.00%], so 'no degradation' holds only within that band."
+    "baseline_wins": "Full precision remains the accuracy reference in the strict sense, but on this corpus INT8 and INT5 beat it with statistical significance. The honest framing flipped: for clean speech, quantization down to 5 bits is not a sacrifice — it is a slightly better model in a much smaller file.",
+    "untested": "Clean speech only; the noisy half of the corpus (test-other) was not run, and the literature predicts degradation appears earlier and larger there. Non-English corpora untested. One corrupted 200-sample chunk was re-run in a different session and environment.",
+    "next_level": "The single most valuable next measurement is the same paired test on noisy speech, where the INT4 penalty is expected to grow — that is a new dataset, not more of this one. A 2-bit level (Q2_K) would also extend the curve downward.",
+    "structural": "The quantization schemes tested are those of the whisper.cpp runtime (Q8_0, Q5_0, Q4_0), not every INT variant; results do not transfer to other runtimes. The 95% confidence interval for INT4 — the range that very likely contains the true value — is [5.21%, 6.03%], so the +4.9% penalty holds only within that band."
   },
   "audience": {
     "who_is_this_for": "Engineers choosing a whisper.cpp quantization level for memory-constrained deployments on clean speech — this is the measured trade-off table between size and accuracy they currently have to guess at.",
@@ -261,7 +270,7 @@
     }
   },
   "reproduce": [
-    "make setup",
-    "make wer-bench"
+    "make docker-build",
+    "sh bench/overnight.sh   # resumable chunked benchmark (also works on a free Colab GPU: bench/colab.py)"
   ]
 }

@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/yoarajota/concept-whisper-quantization-wer-degradation/src/werpipe"
+	"github.com/yoarajota/whisper-quantization-wer-degradation/src/werpipe"
 )
 
 func main() {

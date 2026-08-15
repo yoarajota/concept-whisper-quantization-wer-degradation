@@ -4,7 +4,7 @@ Google Colab runner for the Whisper quantization WER benchmark (C-003).
 
 Paste ONE cell in a Colab notebook with a GPU runtime (T4 is enough):
 
-    !wget -q https://raw.githubusercontent.com/yoarajota/concept-whisper-quantization-wer-degradation/master/bench/colab.py
+    !wget -q https://raw.githubusercontent.com/yoarajota/whisper-quantization-wer-degradation/master/bench/colab.py
     %run colab.py
 
 The script is resumable: chunk files are stored on Google Drive, so if the
@@ -137,7 +137,7 @@ def build_werpipe():
     repo = WORK / "concept"
     if not (repo / "cmd" / "werpipe" / "main.go").exists():
         sh(f"git clone --depth 1 "
-           "https://github.com/yoarajota/concept-whisper-quantization-wer-degradation "
+           "https://github.com/yoarajota/whisper-quantization-wer-degradation "
            + str(repo))
     if not shutil.which("werpipe"):
         sh(f"cd {repo} && go build -o /usr/local/bin/werpipe ./cmd/werpipe/")

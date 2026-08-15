@@ -6,7 +6,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/yoarajota/concept-whisper-quantization-wer-degradation/src/werpipe"
+	"github.com/yoarajota/whisper-quantization-wer-degradation/src/werpipe"
 )
 
 type levelReport struct {
