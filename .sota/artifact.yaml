@@ -14,8 +14,8 @@ headline:
     evidence: "E-006"
   - text: "Model size: 2892MB (full precision) → 1543MB (INT8) → 1010MB (INT5) → 830MB (INT4, -71%)"
     evidence: "E-006"
-  - text: "A 100-sample run detected none of this (E-005): the full 2620-sample dataset was required for the statistical test to see effects this small"
-    evidence: "E-005"
+  - text: "A 100-sample run detected none of this: the full 2620-sample dataset was required for the statistical test to see effects this small"
+    evidence: "E-006"
 
 reproduce:
   - "make docker-build"

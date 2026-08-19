@@ -23,7 +23,7 @@ samples, T4 GPU, whisper.cpp v1.9.2):
 
 **H-001** [E-006] — *partially-supported.* INT4 degradation is statistically
 significant (p=0.0014) but at +4.9% relative, below the 10% predicted at P1.
-Invisible at n=100 (E-005); required the full dataset.
+Invisible at n=100; required the full dataset.
 
 **H-002** [E-006] — *supported.* INT8 shows no degradation — a small significant
 *improvement* (−1.9%, p=0.048). Same for INT5 (−3.0%). Mild quantization acts as
@@ -110,7 +110,6 @@ for the interface design.
 | E-002 | PoC WER + Wilcoxon test on 7 edge cases | `go test ./poc/ -v` | 7/7 pass |
 | E-003 | Component test suite (22 tests) | `go test ./src/werpipe/ -v` | 22/22 pass |
 | E-004 | End-to-end pipeline (Docker, tiny.en) | `docker run ... werpipe` | 3 levels, valid JSON |
-| E-005 | 100-sample large-v3 benchmark | `werpipe -limit 100 ...` | no significance detectable |
 | E-006 | **Full dataset: 2620 samples, 4 levels** | `werpipe merge chunk-*.json` | INT4 +4.9% (p=0.001), INT8/INT5 improve |
 
 Full ledger: [docs/05-evidence.md](docs/05-evidence.md).

@@ -7,7 +7,6 @@ components:
   - E-002
   - E-003
   - E-004
-  - E-005
   - E-006
   notes: 'Full dataset answered the question (E-006): first significant degradation at INT4
     (+4.9%, p=0.0014); INT8/INT5 slightly improve WER. 2620 samples, T4 GPU, 0 errors.

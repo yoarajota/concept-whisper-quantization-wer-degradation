@@ -44,16 +44,15 @@ that stops this file becoming a pile — and unlike most promotion rules, it is 
 
 ---
 
-<!-- No entries yet. Open entries are reported as in-flight work, so this file
-     deliberately starts empty — a placeholder entry here would report fake state on day one.
+### L-001  —  2026-08-15  —  100-sample benchmark raw data lost in temp-dir wipe
 
-     Copy this shape for the first real entry:
+**Context:** The 100-sample large-v3 benchmark (originally E-005) ran on the local machine
+with results written to `/tmp/whisper-bench/`. A system temp cleanup wiped the directory
+before the data could be committed anywhere.
 
-### L-001 — 2026-08-11 — short title
+**Found:** Raw per-sample data unrecoverable; only the summary table survived inside the
+evidence entry. FD-011 (raw data must be committed with a checksum) cannot be met for that
+entry, so it was demoted: its story is folded into the superseding full-dataset entry
+E-006, which has its data committed at `evidence-data/E-006-final.json`.
 
-**Context:** what you were doing when this came up.
-**Found:** what actually happened, specifically enough that nobody repeats it. Include the
-version, flag, or condition that mattered.
-**Disposition:** open | dead-end | promoted: D-### | promoted: E-### | promoted: README
-
--->
+**Disposition:** promoted: E-006

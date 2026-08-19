@@ -51,7 +51,7 @@ iso5055:
   last_run:
     date: "2026-08-12"
     exit_code: 0
-    commit: 997580c7bce0365c4d6fca77dfb4864143d95ca7
+    commit: f2c1245b930bc7297a24dd80dc6a284cfec1c117
   thresholds:
     cyclomatic_complexity_max: 15
     function_length_max: 60
@@ -112,6 +112,6 @@ diffusion:
   note: >
     Final result (E-006): the first statistically significant WER degradation appears
     at INT4 (+4.9% rel, p=0.0014); INT8/INT5 slightly improve WER. The 100-sample
-    run (E-005) could not detect these effects — full dataset was required. Answer to
+    run could not detect these effects — full dataset was required. Answer to
     the concept question: INT4 is the degradation frontier on clean speech, at half
     the predicted magnitude.

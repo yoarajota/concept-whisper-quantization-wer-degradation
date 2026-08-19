@@ -19,6 +19,8 @@ Six sources were fetched and read, establishing the gap. Appears in `docs/01-the
 
 **Environment:** WebFetch against arXiv, GitHub, OpenSLR. Date of search: 2026-08-11.
 
+**Kind:** survey
+
 ```bash
 echo "See docs/01-theory.md § Sources for the fetched URLs and extracted findings."
 echo "Sources: SRC-001 through SRC-006."
@@ -41,6 +43,8 @@ valid Wilcoxon signed-rank p-values. Tests in `poc/main_test.go` verify edge cas
 
 **Environment:** Go 1.x, Linux/amd64.
 
+**Kind:** test
+
 ```bash
 go test ./poc/ -v
 ```
@@ -60,6 +64,8 @@ produces p <= 0.05.
 modes, and properties. All pass.
 
 **Environment:** Go 1.22, Linux/amd64.
+
+**Kind:** test
 
 ```bash
 go test ./src/werpipe/ -v
@@ -81,6 +87,8 @@ and reports Wilcoxon p-values with bootstrap 95% CI — all inside a single Dock
 
 **Environment:** Docker container `concept-whisper-wer` (whisper.cpp v1.9.2, werpipe Go
 CLI), Intel Xeon E5-2680 v4 @ 2.40GHz, 6 vCPUs, no GPU.
+
+**Kind:** test
 
 ```bash
 docker build -f docker/Dockerfile -t concept-whisper-wer .
@@ -109,42 +117,6 @@ Q4_0 WER=0.0909 (rel=0%, p=1.0). Pipeline produces valid JSON. Sizes: 75MB→29M
 
 ---
 
-### E-005  —  Large-v3 benchmark on 100 LibriSpeech test-clean samples
-
-**Claim.** Whisper large-v3 across 4 whisper.cpp quantization levels on 100 random
-LibriSpeech test-clean utterances. H-001 falsified (Q4_0 not significant at +4.2%);
-H-002 supported (Q8_0 near-lossless at -4.2%).
-
-**Environment:** Docker container `concept-whisper-wer` (whisper.cpp v1.9.2), Intel Xeon
-E5-2680 v4 @ 2.40GHz, 6 vCPUs, no GPU, 100 random samples (seed=42). Containerised (R10).
-
-```bash
-docker run --rm \
-  -v /path/to/models:/models \
-  -v /path/to/data100:/data:ro \
-  --entrypoint werpipe concept-whisper-wer \
-  -audio /data -transcripts /data -model-dir /models \
-  -whisper-cli /whisper.cpp/build/bin/whisper-cli -threads 4 \
-  -levels "ggml-large-v3.bin,ggml-large-v3-q8_0.bin,ggml-large-v3-q5_0.bin,ggml-large-v3-q4_0.bin"
-```
-
-**Result:**
-
-| Level | WER | Size | vs F16 | p-value | 95% CI |
-|:---|:---|:---|:---|:---|:---|
-| F16 | 4.94% | 2892 MB | baseline | — | — |
-| Q8_0 | 4.73% | 1543 MB | -4.2% | 0.375 | [3.14%, 6.46%] |
-| Q5_0 | 4.64% | 1010 MB | -6.1% | 0.500 | [3.07%, 6.46%] |
-| Q4_0 | 5.15% | 830 MB | +4.2% | 0.570 | [3.49%, 7.00%] |
-
-No statistically significant WER degradation at any quantization level. Q4_0 adds 0.21
-absolute WER points (+4.2% relative) at a 71% model size reduction (2892MB → 830MB).
-
-**Status:** reproducing
-**Supports:** H-001 (falsified), H-002 (supported), S-001, S-002
-**Recorded:** 2026-08-11
-
----
 
 ### E-006  —  Full-dataset benchmark: 2620 LibriSpeech test-clean samples (GPU)
 
@@ -152,13 +124,22 @@ absolute WER points (+4.2% relative) at a 71% model size reduction (2892MB → 8
 LibriSpeech test-clean utterances. Q8_0 and Q5_0 show statistically significant WER
 *improvement* vs FP16 (−1.9%, p=0.048; −3.0%, p=0.001). Q4_0 shows the first
 statistically significant *degradation*: +4.9% relative, p=0.0014. The effect is real
-but below the 10% predicted at P1 — it was invisible at n=100 (E-005) and required the
+but below the 10% predicted at P1 — it was invisible at n=100 and required the
 full dataset.
+
+An earlier 100-sample run of the same comparison found no significant difference
+at any level (Q4_0 at +4.2%, p=0.57) and was originally recorded as its own evidence
+entry; that entry's raw per-sample data was lost in a temp-dir wipe, and this full
+run supersedes it entirely.
 
 **Environment:** Google Colab, Tesla T4 (15360 MiB), whisper.cpp v1.9.2 compiled with
 CUDA 12.8 (`-DGGML_CUDA=1`, sm_75), werpipe Go CLI, containerless Colab runtime.
 Full dataset run in resumable 200-sample chunks; chunk-8.json (offset 1400) was
 corrupted in transit and redone as chunk-1400.json. All 2620 samples, 0 errors.
+
+**Kind:** benchmark
+
+**Data:** evidence-data/E-006-final.json (sha256: 6bcf09f18f2422eb94c7f297401bfd058fa70edf7ed6c41b9446c608f6cec97c)
 
 ```bash
 # GPU environment (Colab): see bench/colab.py
@@ -191,7 +172,7 @@ S-001, S-002
 
 ## Benchmark methodology
 
-Filled at P5. Applies to every entry tagged as a benchmark.
+Filled at P5. Applies to every entry with `Kind: benchmark`.
 
 - **What is measured:** Per-sample WER across quantization levels; aggregate WER with 95%
   bootstrap CI; Wilcoxon signed-rank p-value for paired FP16 vs quantized comparisons.
