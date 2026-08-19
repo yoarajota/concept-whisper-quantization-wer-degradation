@@ -55,4 +55,9 @@ evidence entry. FD-011 (raw data must be committed with a checksum) cannot be me
 entry, so it was demoted: its story is folded into the superseding full-dataset entry
 E-006, which has its data committed at `evidence-data/E-006-final.json`.
 
+Update 2026-08-19: the n=100 analysis is now derivable from the committed data —
+`bench/slice.py` reproduces it (`evidence-data/E-006-n100.json`, sha256-verified).
+A true re-run on fresh samples remains cheap (~30 min on a GPU) if a genuinely
+new 100-sample measurement is wanted.
+
 **Disposition:** promoted: E-006
